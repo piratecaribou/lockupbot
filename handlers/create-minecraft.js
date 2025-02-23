@@ -2,8 +2,10 @@ const { CommandInteraction, Attachment, MessageFlags, EmbedBuilder } = require('
 const path = require("path");
 const fetch = require('node-fetch');
 const authenticator = require('./authenticator.js');
-const { host, database, username, password, request } = require('../config.json');
+const { databaseHost, databaseName, databaseUsername, databasePassword, request } = require('../config.json');
 const mysql = require("mysql2/promise");
+const mime = require("mime-types");
+const fs = require('fs');
 
 module.exports = async (interaction) => {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -22,7 +24,7 @@ module.exports = async (interaction) => {
 
     const username = interaction.options.getString('username');
     const reason = interaction.options.getString('reason');
-    const evidenceContentType = interaction.options.getAttachment('evidence').contentType;
+    const evidenceContentType = mime.extension(interaction.options.getAttachment('evidence').contentType);
     const evidenceURL = interaction.options.getAttachment('evidence').url;
 
     // Authenticator
@@ -45,18 +47,25 @@ module.exports = async (interaction) => {
         // Unique Checks
         const connection = await mysql.createConnection({
             //config.json
-            host: host,
-            user: username,
-            database: database,
-            password: password
+            host: databaseHost,
+            user: databaseUsername,
+            database: databaseName,
+            password: databasePassword
         });
         try {
             const [caseIDSearch] = await connection.query(
-                "SELECT caseID FROM cases WHERE caseID = " + caseID + ";"
+                "SELECT caseID FROM cases WHERE caseID = '" + caseID + "';"
             );
             if (caseIDSearch.length === 0) {unique = true;}
         } catch (err) {console.log(err);}
     }
+
+    //Download Evidence
+
+    const evidencePath = path.join('./evidence', caseID + '-1.' + evidenceContentType);
+    fetch(evidenceURL).then(res => res.body.pipe(fs.createWriteStream(evidencePath)));
+
+
     await interaction.editReply({ content: `case id: ${caseID}`, flags: MessageFlags.Ephemeral });
 
 };

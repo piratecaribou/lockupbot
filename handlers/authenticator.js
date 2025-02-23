@@ -1,19 +1,19 @@
 const mysql = require('mysql2/promise')
-const { host, database, username, password } = require('../config.json');
+const { databaseHost, databaseName, databaseUsername, databasePassword } = require('../config.json');
 module.exports = {
     role: async (senderUserID) => {
 
         const connection = await mysql.createConnection({
             //config.json
-            host: host,
-            user: username,
-            database: database,
-            password: password
+            host: databaseHost,
+            user: databaseUsername,
+            database: databaseName,
+            password: databasePassword
         });
 
         try {
             const [results] = await connection.query(
-                "SELECT role FROM users WHERE userID = " + senderUserID + ";"
+                "SELECT role FROM users WHERE userID = '" + senderUserID + "';"
             );
             if (results.length === 0) {
                 return 'null'; // No user found
