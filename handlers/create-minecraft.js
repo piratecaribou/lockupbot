@@ -2,10 +2,16 @@ const { CommandInteraction, Attachment, MessageFlags, EmbedBuilder } = require('
 const path = require("path");
 const fetch = require('node-fetch');
 const authenticator = require('./authenticator.js');
-const { request } = require('../config.json');
+const { host, database, username, password, request } = require('../config.json');
+const mysql = require("mysql2/promise");
 
 module.exports = async (interaction) => {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    //Variables
+
+    let unique = false;
+    let caseID = ''
 
     // Sender Data
 
@@ -22,15 +28,35 @@ module.exports = async (interaction) => {
     // Authenticator
 
     const roleResultAuthenticator = await authenticator.role(senderUserID);
-    console.log(roleResultAuthenticator);
     if (roleResultAuthenticator === 'null') {
         const unauthorizedEmbed = new EmbedBuilder()
             .setColor(0xB22222)
             .setDescription("You do not have access to the evidence lockup system. If you believe this is a mistake, or would like to request access please use: " + request)
         await interaction.editReply({ embeds: [unauthorizedEmbed], flags: MessageFlags.Ephemeral });
         return
-    }// Only Valid Users Below
+    }
+    // Only Valid Users Below
 
-    await interaction.editReply({ content: 'Secret Pong!', flags: MessageFlags.Ephemeral });
+    // Case ID Generation
+    while (unique === false) {
+        // ID Generation
+        let n = (Math.random() * 0xfffff * 1000000).toString(16);
+        caseID = n.slice(0, 6);
+        // Unique Checks
+        const connection = await mysql.createConnection({
+            //config.json
+            host: host,
+            user: username,
+            database: database,
+            password: password
+        });
+        try {
+            const [caseIDSearch] = await connection.query(
+                "SELECT caseID FROM cases WHERE caseID = " + caseID + ";"
+            );
+            if (caseIDSearch.length === 0) {unique = true;}
+        } catch (err) {console.log(err);}
+    }
+    await interaction.editReply({ content: `case id: ${caseID}`, flags: MessageFlags.Ephemeral });
 
 };
