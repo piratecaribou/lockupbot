@@ -8,6 +8,7 @@
   },
   "private": true,
   "dependencies": {
+    "date-format": "^4.0.14",
     "discord.js": "^14.18.0",
     "mime-types": "^2.1.35",
     "mysql2": "^3.12.0",
