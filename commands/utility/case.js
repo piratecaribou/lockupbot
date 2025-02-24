@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const createMinecraft = require('../../handlers/create-minecraft.js');
+const createMinecraft = require('../../handlers/commands/createMinecraft.js');
 
 module.exports = {
     data: new SlashCommandBuilder()

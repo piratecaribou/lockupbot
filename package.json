@@ -12,6 +12,7 @@
     "discord.js": "^14.18.0",
     "mime-types": "^2.1.35",
     "mysql2": "^3.12.0",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "openai": "^4.85.4"
   }
 }
