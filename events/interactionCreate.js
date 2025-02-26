@@ -1,6 +1,6 @@
-const { Events, MessageFlags } = require('discord.js');
-const caseIDButton = require('../handlers/buttons/caseIDButton.js');
-const suggestMCButton = require('../handlers/buttons/suggestMCButton.js');
+const { Events, MessageFlags } = require("discord.js");
+const caseIDButton = require("../handlers/buttons/caseIDButton.js");
+const suggestMCButton = require("../handlers/buttons/suggestMCButton.js");
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -19,15 +19,16 @@ module.exports = {
         } catch (error) {
             console.error(error);
             if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+                await interaction.followUp({ content: "There was an error while executing this command!", flags: MessageFlags.Ephemeral });
             } else {
-                await interaction.reply({ content: 'There was an error while executing this command!', flags: MessageFlags.Ephemeral });
+                await interaction.reply({ content: "There was an error while executing this command!", flags: MessageFlags.Ephemeral });
             }
         }
         } else if (interaction.isButton()) {
-            if (interaction.customId.startsWith('caseID-') === true ) {
+            if (interaction.customId.startsWith("caseID-") === true ) {
                 caseIDButton(interaction);
-            } else if (interaction.customId.startsWith('suggestMC-') === true) {
+            } else if (interaction.customId.startsWith("suggestMC-") === true) {
+                await interaction.deferReply({ flags: MessageFlags.Ephemeral });
                 suggestMCButton(interaction);
             }
         }

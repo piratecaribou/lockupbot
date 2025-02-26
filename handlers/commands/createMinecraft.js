@@ -1,12 +1,13 @@
-const { MessageFlags, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, AttachmentBuilder } = require('discord.js');
+const { MessageFlags, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, AttachmentBuilder } = require("discord.js");
 const path = require("path");
-const fetch = require('node-fetch');
-const authenticator = require('../processes/authenticator.js');
-const { databaseHost, databaseName, databaseUsername, databasePassword, request, edit } = require('../../config.json');
+const fetch = require("node-fetch");
+const authenticator = require("../functions/authenticator.js");
+const { databaseHost, databaseName, databaseUsername, databasePassword, request, edit } = require("../../config.json");
 const mysql = require("mysql2/promise");
 const mime = require("mime-types");
-const fs = require('fs');
-const format = require('date-format');
+const fs = require("fs");
+const format = require("date-format");
+const sanitize = require ("../../handlers/functions/sqlSanitize");
 
 module.exports = async (interaction) => {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
@@ -14,7 +15,7 @@ module.exports = async (interaction) => {
     //Variables
 
     let unique = false;
-    let caseID = ''
+    let caseID = ""
     const timestamp = Math.floor(Date.now() / 1000)
 
     // Sender Data
@@ -24,10 +25,10 @@ module.exports = async (interaction) => {
 
     // Option Data
 
-    const username = interaction.options.getString('username');
-    const reason = interaction.options.getString('reason');
-    const evidenceContentType = mime.extension(interaction.options.getAttachment('evidence').contentType);
-    const evidenceURL = interaction.options.getAttachment('evidence').url;
+    const username = interaction.options.getString("username");
+    const reason = interaction.options.getString("reason");
+    const evidenceContentType = mime.extension(interaction.options.getAttachment("evidence").contentType);
+    const evidenceURL = interaction.options.getAttachment("evidence").url;
 
     // Error Embed
     const errorEmbed = new EmbedBuilder()
@@ -51,7 +52,7 @@ module.exports = async (interaction) => {
     // Authenticator
 
     const roleResultAuthenticator = await authenticator.role(senderUserID, pool);
-    if (roleResultAuthenticator === 'null') {
+    if (roleResultAuthenticator === "null") {
         const unauthorizedEmbed = new EmbedBuilder()
             .setColor(0xB22222)
             .setDescription("You do not have access to the evidence lockup system. If you believe this is a mistake, or would like to request access please use: " + request)
@@ -82,13 +83,13 @@ module.exports = async (interaction) => {
 
     // Download Evidence
 
-    const evidencePath = path.join('./evidence', caseID + '-1.' + evidenceContentType);
+    const evidencePath = path.join("./evidence", caseID + "-1." + evidenceContentType);
     fetch(evidenceURL).then(res => res.body.pipe(fs.createWriteStream(evidencePath)));
 
     // Send To Mysql Database
     try {
         await pool.query(
-            "INSERT INTO cases (caseID, platform, perpetrator, executor, reason, evidence, time) VALUES ('" + caseID + "', 'minecraft', '" + username + "', '" + senderUserID + "', '" + reason + "', '" + caseID + "-1." + evidenceContentType + "', '" + timestamp + "');"
+            "INSERT INTO cases (caseID, platform, perpetrator, executor, reason, evidence, time) VALUES ('" + caseID + "', 'minecraft', '" + await sanitize.encode(username) + "', '" + senderUserID + "', '" + await sanitize.encode(reason) + "', '" + caseID + "-1." + evidenceContentType + "', '" + timestamp + "');"
         );
     } catch (err) {
         await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
@@ -130,6 +131,6 @@ module.exports = async (interaction) => {
     await interaction.editReply({ embeds: [successEmbed], components: [buttonRow], files: [evidenceAttachment], flags: MessageFlags.Ephemeral });
 
     // Create Log Entry
-    const logEntry = format('dd/MM/yyyy hh:mm:ss', new Date()) + " » " + senderUsername + " (" + senderUserID + ") created a minecraft punishment case: " + caseID + "\n"
+    const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") created a minecraft punishment case: " + caseID + "\n"
     fs.appendFile("./logs/cases.log", logEntry, {encoding:"utf8"}, function(err) { if(err) { console.log(err); }});
 };
