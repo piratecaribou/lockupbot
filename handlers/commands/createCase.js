@@ -31,7 +31,7 @@ module.exports = async (interaction) => {
         platform = "minecraft";
 
     } else if (interaction.options.getSubcommand() === "discord") {
-        user = interaction.options.getString("user");
+        user = interaction.options.getUser("user").id;
         platform = "discord";
     } else {
         await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
@@ -175,9 +175,9 @@ module.exports = async (interaction) => {
             .setEmoji("🔑")
             .setStyle(ButtonStyle.Secondary);
         const suggestButton = new ButtonBuilder()
-            .setCustomId("suggestDC-" + caseID)
-            .setLabel("Suggest Command")
-            .setEmoji("🪄")
+            .setCustomId("reasonDC௵" + reason + " - " + caseID)
+            .setLabel("Reason")
+            .setEmoji("📜")
             .setStyle(ButtonStyle.Secondary);
         const buttonRow = new ActionRowBuilder()
             .addComponents(caseIDButton, suggestButton);
