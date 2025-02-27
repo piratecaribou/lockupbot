@@ -147,7 +147,7 @@ module.exports = async (interaction) => {
             if (openAiAction === "mute") {
                 if (openAiReason === "null") {
                     if (runs === 3) {
-                        await interaction.editReply({embeds: [errorRunsEmbed], flags: MessageFlags.Ephemeral});
+                        await interaction.editReply({embeds: [errorRunsEmbed], flags: MessageFlags.Ephemeral, content: ""});
                         return;
                     }
                     await interaction.editReply({
@@ -280,7 +280,7 @@ module.exports = async (interaction) => {
                 } else if (!openAiPunishmentDetails.startsWith("!") === true) {
                     if (openAiReason === "null") {
                         if (runs === 3) {
-                            await interaction.editReply({embeds: [errorRunsEmbed], flags: MessageFlags.Ephemeral});
+                            await interaction.editReply({embeds: [errorRunsEmbed], flags: MessageFlags.Ephemeral, content: ""});
                             return;
                         }
                         await interaction.editReply({
