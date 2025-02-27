@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require("discord.js");
-const createMinecraft = require("../../handlers/commands/createMinecraft.js");
+const { SlashCommandBuilder, MessageFlags} = require("discord.js");
+const createCase = require("../../handlers/commands/createCase.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -45,8 +45,9 @@ module.exports = {
                                 .setDescription("The evidence for the punishment")
                                 .setRequired(true)))),
     async execute(interaction) {
-        if (interaction.options.getSubcommand() === "minecraft") {
-            createMinecraft(interaction);
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+        if (interaction.options.getSubcommand() === "minecraft" || interaction.options.getSubcommand() === "discord") {
+            createCase(interaction);
         }
     },
 };
