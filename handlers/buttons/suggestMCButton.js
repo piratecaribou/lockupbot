@@ -7,16 +7,24 @@ const sanitize = require ("../functions/sqlSanitize");
 module.exports = async (interaction) => {
     // Validity
     let valid = false;
+    let runs = 0;
 
     // Get CaseID
     const caseID = interaction.customId.split("-")[1];
 
-    // Error Embed
+    // Error Embeds
     const errorEmbed = new EmbedBuilder()
         .setColor(0xB22222)
         .setDescription("An error occurred during this process, please alert <@658043211591450667>.")
 
+    const errorRunsEmbed = new EmbedBuilder()
+        .setColor(0xB22222)
+        .setDescription("Something went horribly wrong! After 3 attempts it still isn’t working, as a result we wont try again; for more information please contact: <@658043211591450667>")
+
     while (valid === false) {
+
+        runs++;
+
         // Query MySQL Database
         const connection = await mysql.createConnection({
             host: databaseHost,
@@ -138,6 +146,10 @@ module.exports = async (interaction) => {
             // Sending Resulting Data
             if (openAiAction === "mute") {
                 if (openAiReason === "null") {
+                    if (runs === 3) {
+                        await interaction.editReply({embeds: [errorRunsEmbed], flags: MessageFlags.Ephemeral});
+                        return;
+                    }
                     await interaction.editReply({
                         content: "Something Went Wrong! Re-Sending Request. Sit tight",
                         flags: MessageFlags.Ephemeral
@@ -267,6 +279,10 @@ module.exports = async (interaction) => {
 
                 } else if (!openAiPunishmentDetails.startsWith("!") === true) {
                     if (openAiReason === "null") {
+                        if (runs === 3) {
+                            await interaction.editReply({embeds: [errorRunsEmbed], flags: MessageFlags.Ephemeral});
+                            return;
+                        }
                         await interaction.editReply({
                             content: "Something Went Wrong! Re-Sending Request. Sit tight",
                             flags: MessageFlags.Ephemeral
