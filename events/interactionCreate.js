@@ -1,6 +1,7 @@
 const { Events, MessageFlags } = require("discord.js");
 const caseIDButton = require("../handlers/buttons/caseIDButton.js");
 const suggestMCButton = require("../handlers/buttons/suggestMCButton.js");
+const reasonButton = require("../handlers/buttons/reasonButton");
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -30,6 +31,8 @@ module.exports = {
             } else if (interaction.customId.startsWith("suggestMC-") === true) {
                 await interaction.deferReply({ flags: MessageFlags.Ephemeral });
                 suggestMCButton(interaction);
+            } else if (interaction.customId.startsWith("reasonDC௵") === true) {
+                reasonButton(interaction);
             }
         }
     },
