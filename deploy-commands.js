@@ -26,11 +26,11 @@ for (const folder of commandFolders) {
 
 // Construct and prepare an instance of the REST module
 const rest = new REST().setToken(token);
+
 /* - Don't uncomment unless you 1) know what you are doing, 2) are editing the commands inside /commands
 rest.put(Routes.applicationCommands(clientId), { body: [] })
     .then(() => console.log("Successfully deleted all application commands."))
-    .catch(console.error);
-*/
+    .catch(console.error); */
 
 // and deploy your commands!
 (async () => {

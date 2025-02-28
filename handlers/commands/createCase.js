@@ -113,13 +113,8 @@ module.exports = async (interaction) => {
                 {name: "**Punished Player**", value: "`" + user + "`", inline: true},
                 {name: "**Reason**", value: "`" + reason + "`", inline: true},
                 {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                {
-                    name: "**Case ID**",
-                    value: "`🏹` <@" + senderUserID + ">\n" + "`🕰️` <t:" + timestamp + ":R>",
-                    inline: true
-                },
-                {name: "", value: "If you made a mistake, you can edit the case using" + edit + ".", inline: true}
-            )
+                {name: "**Case ID**", value: "`🏹` <@" + senderUserID + ">\n" + "`🕰️` <t:" + timestamp + ":R>", inline: true},
+                {name: "", value: "If you made a mistake, you can edit the case using" + edit + ".", inline: true})
         // Create Buttons & Add To Button Row
         const caseIDButton = new ButtonBuilder()
             .setCustomId("caseID-" + caseID)
@@ -161,13 +156,8 @@ module.exports = async (interaction) => {
                 {name: "**Punished User**", value: "<@" + user + ">", inline: true},
                 {name: "**Reason**", value: "`" + reason + "`", inline: true},
                 {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                {
-                    name: "**Case ID**",
-                    value: "`🏹` <@" + senderUserID + ">\n" + "`🕰️` <t:" + timestamp + ":R>",
-                    inline: true
-                },
-                {name: "", value: "If you made a mistake, you can edit the case using" + edit + ".", inline: true}
-            )
+                {name: "**Case ID**", value: "`🏹` <@" + senderUserID + ">\n" + "`🕰️` <t:" + timestamp + ":R>", inline: true},
+                {name: "", value: "If you made a mistake, you can edit the case using" + edit + ".", inline: true})
         // Create Buttons & Add To Button Row
         const caseIDButton = new ButtonBuilder()
             .setCustomId("caseID-" + caseID)
@@ -175,7 +165,7 @@ module.exports = async (interaction) => {
             .setEmoji("🔑")
             .setStyle(ButtonStyle.Secondary);
         const suggestButton = new ButtonBuilder()
-            .setCustomId("reasonDC௵" + reason + " - " + caseID)
+            .setCustomId("reasonDC௵" + reason.replace("௵", "") + " - " + caseID)
             .setLabel("Reason")
             .setEmoji("📜")
             .setStyle(ButtonStyle.Secondary);
