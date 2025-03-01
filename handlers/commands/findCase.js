@@ -46,65 +46,133 @@ module.exports = async (interaction) => {
             );
             // If CaseID Found
             if (results.length > 0) {
-                const {caseID, platform, perpetrator, executor, reason, evidence, time} = results[0];
+                const {caseID, platform, perpetrator, executor, reason, evidence, time, note} = results[0];
                 let evidenceArray = evidence.split(",");
                 for (let i = 0; i < evidenceArray.length; i++) {
                     const evidencePath = path.join("./evidence", evidenceArray[i]);
                     const evidenceAttachment = new AttachmentBuilder(evidencePath)
                         .setName(evidenceArray[i]);
+                    // If Last Piece Of Evidence
                     if ( (i + 1) === evidenceArray.length ) {
+                        // If First Loop
                         if (i === 0) {
+                            // If A Minecraft Punishment
                             if (platform === "minecraft") {
-                                const successEmbed = new EmbedBuilder()
-                                    .setColor(0x008080)
-                                    .setDescription("Found a minecraft punishment.")
-                                    .addFields(
-                                        {name: "**Punished Player**", value: "`" + perpetrator + "`", inline: true},
-                                        {name: "**Reason**", value: "`" + reason + "`", inline: true},
-                                        {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                                        {name: "**Case ID**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + time + ":R>", inline: true},
-                                        {name: "", value: "If you made a mistake, you can edit the case using" + edit + ".", inline: true})
-                                await interaction.editReply({embeds: [successEmbed], content: "", files: [evidenceAttachment], flags: MessageFlags.Ephemeral });
+                                // If No Note Recorded
+                                if (note === "") {
+                                    const successEmbed = new EmbedBuilder()
+                                        .setColor(0x008080)
+                                        .setDescription("Found a minecraft punishment.")
+                                        .addFields(
+                                            {name: "**Punished Player**", value: "`" + perpetrator + "`", inline: true},
+                                            {name: "**Reason**", value: "`" + reason + "`", inline: true},
+                                            {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
+                                            {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + time + ":R>", inline: true},
+                                            {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true})
+                                    await interaction.editReply({embeds: [successEmbed], content: "", files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
+                                    // Note Recorded
+                                } else {
+                                    const successEmbed = new EmbedBuilder()
+                                        .setColor(0x008080)
+                                        .setDescription("Found a minecraft punishment.")
+                                        .addFields(
+                                            {name: "**Punished Player**", value: "`" + perpetrator + "`", inline: true},
+                                            {name: "**Reason**", value: "`" + reason + "`", inline: true},
+                                            {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
+                                            {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + time + ":R>", inline: true},
+                                            {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true},
+                                            {name: "**Note**", value: "```" + note + "```", inline: false})
+                                    await interaction.editReply({embeds: [successEmbed], content: "", files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
+                                }
+                                // If A Discord Punishment
                             } else if (platform === "discord") {
-                                const successEmbed = new EmbedBuilder()
-                                    .setColor(0x008080)
-                                    .setDescription("Found a discord punishment.")
-                                    .addFields(
-                                        {name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
-                                        {name: "**Reason**", value: "`" + reason + "`", inline: true},
-                                        {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                                        {name: "**Case ID**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + times + ":R>", inline: true},
-                                        {name: "", value: "If you made a mistake, you can edit the case using" + edit + ".", inline: true})
-                                await interaction.editReply({embeds: [successEmbed], content: "", files: [evidenceAttachment], flags: MessageFlags.Ephemeral });
+                                // If No Note Recorded
+                                if (note === "") {
+                                    const successEmbed = new EmbedBuilder()
+                                        .setColor(0x008080)
+                                        .setDescription("Found a discord punishment.")
+                                        .addFields({name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
+                                            {name: "**Reason**", value: "`" + reason + "`", inline: true},
+                                            {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
+                                            {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + times + ":R>", inline: true},
+                                            {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true})
+                                    await interaction.editReply({embeds: [successEmbed], content: "", files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
+                                    // Note Recorded
+                                } else {
+                                    const successEmbed = new EmbedBuilder()
+                                        .setColor(0x008080)
+                                        .setDescription("Found a discord punishment.")
+                                        .addFields({name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
+                                            {name: "**Reason**", value: "`" + reason + "`", inline: true},
+                                            {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
+                                            {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + times + ":R>", inline: true},
+                                            {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true},
+                                            {name: "**Note**", value: "```" + note + "```", inline: false})
+                                    await interaction.editReply({embeds: [successEmbed], content: "", files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
+                                }
                             }
+                            // If Not First Loop
                         } else {
+                            // If A Minecraft Punishment
                             if (platform === "minecraft") {
-                                const successEmbed = new EmbedBuilder()
-                                    .setColor(0x008080)
-                                    .setDescription("Found a minecraft punishment.")
-                                    .addFields(
-                                        {name: "**Punished Player**", value: "`" + perpetrator + "`", inline: true},
-                                        {name: "**Reason**", value: "`" + reason + "`", inline: true},
-                                        {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                                        {name: "**Case ID**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + time + ":R>", inline: true},
-                                        {name: "", value: "If you made a mistake, you can edit the case using" + edit + ".", inline: true})
-                                await interaction.followUp({content: `Evidence ${(i + 1)}:`, embeds: [successEmbed], files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
+                                // If No Note Recorded
+                                if (note === "") {
+                                    const successEmbed = new EmbedBuilder()
+                                        .setColor(0x008080)
+                                        .setDescription("Found a minecraft punishment.")
+                                        .addFields({name: "**Punished Player**", value: "`" + perpetrator + "`", inline: true},
+                                            {name: "**Reason**", value: "`" + reason + "`", inline: true},
+                                            {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
+                                            {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + time + ":R>", inline: true},
+                                            {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true})
+                                    await interaction.followUp({content: `Evidence ${(i + 1)}:`, embeds: [successEmbed], files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
+                                    // Note Recorded
+                                } else {
+                                    const successEmbed = new EmbedBuilder()
+                                        .setColor(0x008080)
+                                        .setDescription("Found a minecraft punishment.")
+                                        .addFields({name: "**Punished Player**", value: "`" + perpetrator + "`", inline: true},
+                                            {name: "**Reason**", value: "`" + reason + "`", inline: true},
+                                            {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
+                                            {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + time + ":R>", inline: true},
+                                            {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true},
+                                            {name: "**Note**", value: "```" + note + "```", inline: false})
+                                    await interaction.followUp({content: `Evidence ${(i + 1)}:`, embeds: [successEmbed], files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
+                                }
+                                // If A Discord Punishment
                             } else if (platform === "discord") {
-                                const successEmbed = new EmbedBuilder()
-                                    .setColor(0x008080)
-                                    .setDescription("Found a discord punishment.")
-                                    .addFields(
-                                        {name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
-                                        {name: "**Reason**", value: "`" + reason + "`", inline: true},
-                                        {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                                        {name: "**Case ID**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + times + ":R>", inline: true},
-                                        {name: "", value: "If you made a mistake, you can edit the case using" + edit + ".", inline: true})
-                                await interaction.followUp({content: `Evidence ${(i + 1)}:`, embeds: [successEmbed], files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
+                                // If No Note Recorded
+                                if (note === "") {
+                                    const successEmbed = new EmbedBuilder()
+                                        .setColor(0x008080)
+                                        .setDescription("Found a discord punishment.")
+                                        .addFields({name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
+                                            {name: "**Reason**", value: "`" + reason + "`", inline: true},
+                                            {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
+                                            {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + times + ":R>", inline: true},
+                                            {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true})
+                                    await interaction.followUp({content: `Evidence ${(i + 1)}:`, embeds: [successEmbed], files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
+                                    // Note Recorded
+                                } else {
+                                    const successEmbed = new EmbedBuilder()
+                                        .setColor(0x008080)
+                                        .setDescription("Found a discord punishment.")
+                                        .addFields({name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
+                                            {name: "**Reason**", value: "`" + reason + "`", inline: true},
+                                            {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
+                                            {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + times + ":R>", inline: true},
+                                            {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true},
+                                            {name: "**Note**", value: "```" + note + "```", inline: false})
+                                    await interaction.followUp({content: `Evidence ${(i + 1)}:`, embeds: [successEmbed], files: [evidenceAttachment], flags: MessageFlags.Ephemeral})
+                                }
                             }
                         }
+                        // If Not Last Piece Of Evidence
                     } else {
+                        // If First Message
                         if (i === 0) {
                             await interaction.editReply({content: `Evidence ${(i + 1)}:`, files: [evidenceAttachment], flags: MessageFlags.Ephemeral });
+                            // If Second Message +
                         } else {
                             await interaction.followUp({content: `Evidence ${(i + 1)}:`, files: [evidenceAttachment], flags: MessageFlags.Ephemeral });
                         }
