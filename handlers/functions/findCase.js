@@ -1,10 +1,10 @@
 const sanitize = require("./sqlSanitize");
-const edit = require("../../config.json");
+const { databaseHost, databaseName, databaseUsername, databasePassword, edit } = require("../../config.json");
 const path = require("path");
 const {AttachmentBuilder, EmbedBuilder, MessageFlags} = require("discord.js");
 const mysql = require("mysql2/promise");
 
-module.exports = async (interaction) => {
+module.exports = async (interaction, caseID) => {
 
     // Error Embed
     const errorEmbed = new EmbedBuilder()
@@ -22,7 +22,7 @@ module.exports = async (interaction) => {
     // Query MySql
     try {
         const [results] = await connection.query(
-            "SELECT * FROM cases WHERE caseID = '" + await sanitize.encode(interaction.options.getString("case-id")) + "';");
+            "SELECT * FROM cases WHERE caseID = '" + await sanitize.encode(caseID) + "';");
         connection.end();
 
         // If CaseID Found
@@ -76,7 +76,7 @@ module.exports = async (interaction) => {
                                         {name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},
                                         {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                                        {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + times + ":R>", inline: true},
+                                        {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + time + ":R>", inline: true},
                                         {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true})
                                 await interaction.editReply({embeds: [successEmbed], content: "", files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
                                 // Note Recorded
@@ -88,7 +88,7 @@ module.exports = async (interaction) => {
                                         {name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},
                                         {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                                        {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + times + ":R>", inline: true},
+                                        {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + time + ":R>", inline: true},
                                         {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true},
                                         {name: "**Note**", value: "```" + note + "```", inline: false})
                                 await interaction.editReply({embeds: [successEmbed], content: "", files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
@@ -135,7 +135,7 @@ module.exports = async (interaction) => {
                                         {name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},
                                         {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                                        {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + times + ":R>", inline: true},
+                                        {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + time + ":R>", inline: true},
                                         {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true})
                                 await interaction.followUp({content: `Evidence ${(i + 1)}:`, embeds: [successEmbed], files: [evidenceAttachment], flags: MessageFlags.Ephemeral});
                                 // Note Recorded
@@ -147,7 +147,7 @@ module.exports = async (interaction) => {
                                         {name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},
                                         {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                                        {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + times + ":R>", inline: true},
+                                        {name: "**Case Information**", value: "`🏹` <@" + executor + ">\n" + "`🕰️` <t:" + time + ":R>", inline: true},
                                         {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true},
                                         {name: "**Note**", value: "```" + note + "```", inline: false})
                                 await interaction.followUp({content: `Evidence ${(i + 1)}:`, embeds: [successEmbed], files: [evidenceAttachment], flags: MessageFlags.Ephemeral})
