@@ -26,12 +26,8 @@ module.exports = async (interaction) => {
         keepAliveInitialDelay: 0,
     });
 
-    // Sender Data
-    const senderUserID = interaction.user.id;
-    const senderUsername = interaction.user.username;
-
     // Authenticator
-    const roleResultAuthenticator = await authenticator.role(senderUserID, pool);
+    const roleResultAuthenticator = await authenticator.role(interaction.user.id, pool);
     if (roleResultAuthenticator === "null") {
         const unauthorizedEmbed = new EmbedBuilder()
             .setColor(0xB22222)
