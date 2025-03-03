@@ -1,6 +1,13 @@
 const mysql = require("mysql2/promise");
-const authenticator = require("../functions/authenticator");
 const {EmbedBuilder, MessageFlags} = require("discord.js");
+const { databaseHost, databaseName, databaseUsername, databasePassword} = require("../../config.json");
+const findCase = require("../functions/findCase");
+const authenticator = require("../functions/authenticator");
+const sanitize = require ("../../handlers/functions/sqlSanitize");
+const mime = require("mime-types");
+const path = require("path");
+const fetch = require("node-fetch");
+const fs = require("fs");
 
 module.exports = async (interaction) => {
 
@@ -32,4 +39,36 @@ module.exports = async (interaction) => {
         await interaction.editReply({ embeds: [unauthorizedEmbed], flags: MessageFlags.Ephemeral });
         pool.end()
         return}
+
+    try {
+        const [query] = await pool.query(
+            "SELECT evidence, caseID FROM cases WHERE caseID = '" + await sanitize.encode(interaction.options.getString("case-id")) + "';");
+        // If Case ID Not Found
+        if (query.length === 0) {
+            const caseIDNotFoundEmbed = new EmbedBuilder()
+                .setColor(0xB22222)
+                .setDescription("Sorry we could not find that case. Please check the Case ID and try again.")
+            await interaction.editReply({embeds: [caseIDNotFoundEmbed], flags: MessageFlags.Ephemeral});
+            pool.end()
+            // Case ID Found
+        } else {
+            // Get Next Evidence Number
+            let evidenceArray = query[0].evidence.split(",");
+            let lastEvidenceNumber = parseInt(evidenceArray[evidenceArray.length - 1].split("-")[1].split(".")[0]) + 1;
+
+            // Download Evidence
+            const evidencePath = path.join("./evidence", interaction.options.getString("case-id") + "-" + lastEvidenceNumber + "." + mime.extension(interaction.options.getAttachment("evidence").contentType));
+            fetch(interaction.options.getAttachment("evidence").url).then(res => res.body.pipe(fs.createWriteStream(evidencePath)));
+
+            // Update Mysql Database
+            await pool.query(
+                "UPDATE cases SET evidence = '" + query[0].evidence + "," + interaction.options.getString("case-id") + "-" + lastEvidenceNumber + "." + mime.extension(interaction.options.getAttachment("evidence").contentType) + "' WHERE caseID = '" + await sanitize.encode(interaction.options.getString("case-id")) + "';");
+            findCase(interaction, interaction.options.getString("case-id"), "Added evidence.")
+            pool.end()
+        }
+    } catch (err) {
+        console.log(err)
+        pool.end()
+        await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
+    }
 }
