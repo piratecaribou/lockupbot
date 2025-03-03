@@ -40,20 +40,28 @@ module.exports = async (interaction) => {
     try {
         const [query] = await pool.query(
             "SELECT note, caseID FROM cases WHERE caseID = '" + await sanitize.encode(interaction.options.getString("case-id")) + "';");
+        // If Case ID Not Found
         if (query.length === 0) {
             const caseIDNotFoundEmbed = new EmbedBuilder()
                 .setColor(0xB22222)
                 .setDescription("Sorry we could not find that case. Please check the Case ID and try again.")
             await interaction.editReply({embeds: [caseIDNotFoundEmbed], flags: MessageFlags.Ephemeral});
+            pool.end()
+            // If Case ID Found And No Note
         } else if (query[0].note === null) {
+            // Update MYSQL
             await pool.query(
                 "UPDATE cases SET note = '" + await sanitize.encode(interaction.options.getString("note")) + "' WHERE caseID = '" + await sanitize.encode(interaction.options.getString("case-id")) + "';");
+            pool.end()
+            //Send Updated Embed
             findCase(interaction, interaction.options.getString("case-id"), "Added a note.")
+            // Note Found
         } else {
             const noteFoundEmbed = new EmbedBuilder()
                 .setColor(0xB22222)
                 .setDescription("A note has already been created for this case, you can edit it using: " + edit)
             await interaction.editReply({embeds: [noteFoundEmbed], flags: MessageFlags.Ephemeral});
+            pool.end()
         }
     } catch (err) {
         console.log(err);
