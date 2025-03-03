@@ -4,7 +4,7 @@ const path = require("path");
 const {AttachmentBuilder, EmbedBuilder, MessageFlags} = require("discord.js");
 const mysql = require("mysql2/promise");
 
-module.exports = async (interaction, caseID) => {
+module.exports = async (interaction, caseID, description) => {
 
     // Error Embed
     const errorEmbed = new EmbedBuilder()
@@ -28,6 +28,16 @@ module.exports = async (interaction, caseID) => {
         // If CaseID Found
         if (results.length > 0) {
             const {caseID, platform, perpetrator, executor, reason, evidence, time, note} = results[0];
+
+            if (description == null) {
+                if (platform === "minecraft") {
+                    description = "Found a minecraft punishment.";
+                } else if (platform === "discord") {
+                    description = "Found a discord punishment.";
+                }
+            }
+
+
             let evidenceArray = evidence.split(",");
             for (let i = 0; i < evidenceArray.length; i++) {
                 const evidencePath = path.join("./evidence", evidenceArray[i]);
@@ -40,10 +50,10 @@ module.exports = async (interaction, caseID) => {
                         // If A Minecraft Punishment
                         if (platform === "minecraft") {
                             // If No Note Recorded
-                            if (note === "") {
+                            if (note === null) {
                                 const successEmbed = new EmbedBuilder()
                                     .setColor(0x008080)
-                                    .setDescription("Found a minecraft punishment.")
+                                    .setDescription(description)
                                     .addFields(
                                         {name: "**Punished Player**", value: "`" + perpetrator + "`", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},
@@ -55,7 +65,7 @@ module.exports = async (interaction, caseID) => {
                             } else {
                                 const successEmbed = new EmbedBuilder()
                                     .setColor(0x008080)
-                                    .setDescription("Found a minecraft punishment.")
+                                    .setDescription(description)
                                     .addFields(
                                         {name: "**Punished Player**", value: "`" + perpetrator + "`", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},
@@ -68,10 +78,10 @@ module.exports = async (interaction, caseID) => {
                             // If A Discord Punishment
                         } else if (platform === "discord") {
                             // If No Note Recorded
-                            if (note === "") {
+                            if (note === null) {
                                 const successEmbed = new EmbedBuilder()
                                     .setColor(0x008080)
-                                    .setDescription("Found a discord punishment.")
+                                    .setDescription(description)
                                     .addFields(
                                         {name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},
@@ -83,7 +93,7 @@ module.exports = async (interaction, caseID) => {
                             } else {
                                 const successEmbed = new EmbedBuilder()
                                     .setColor(0x008080)
-                                    .setDescription("Found a discord punishment.")
+                                    .setDescription(description)
                                     .addFields(
                                         {name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},
@@ -99,10 +109,10 @@ module.exports = async (interaction, caseID) => {
                         // If A Minecraft Punishment
                         if (platform === "minecraft") {
                             // If No Note Recorded
-                            if (note === "") {
+                            if (note === null) {
                                 const successEmbed = new EmbedBuilder()
                                     .setColor(0x008080)
-                                    .setDescription("Found a minecraft punishment.")
+                                    .setDescription(description)
                                     .addFields(
                                         {name: "**Punished Player**", value: "`" + perpetrator + "`", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},
@@ -114,7 +124,7 @@ module.exports = async (interaction, caseID) => {
                             } else {
                                 const successEmbed = new EmbedBuilder()
                                     .setColor(0x008080)
-                                    .setDescription("Found a minecraft punishment.")
+                                    .setDescription(description)
                                     .addFields(
                                         {name: "**Punished Player**", value: "`" + perpetrator + "`", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},
@@ -127,10 +137,10 @@ module.exports = async (interaction, caseID) => {
                             // If A Discord Punishment
                         } else if (platform === "discord") {
                             // If No Note Recorded
-                            if (note === "") {
+                            if (note === null) {
                                 const successEmbed = new EmbedBuilder()
                                     .setColor(0x008080)
-                                    .setDescription("Found a discord punishment.")
+                                    .setDescription(description)
                                     .addFields(
                                         {name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},
@@ -142,7 +152,7 @@ module.exports = async (interaction, caseID) => {
                             } else {
                                 const successEmbed = new EmbedBuilder()
                                     .setColor(0x008080)
-                                    .setDescription("Found a discord punishment.")
+                                    .setDescription(description)
                                     .addFields(
                                         {name: "**Punished User**", value: "<@" + perpetrator + ">", inline: true},
                                         {name: "**Reason**", value: "`" + reason + "`", inline: true},

@@ -1,28 +1,63 @@
 const { SlashCommandBuilder, MessageFlags} = require("discord.js");
 const createCase = require("../../handlers/commands/createCase.js");
 const findCase = require("../../handlers/commands/findCase.js");
+const addEvidence = require("../../handlers/commands/addEvidence.js");
+const addNote = require("../../handlers/commands/addNote.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("case")
         .setDescription("Case base command")
+        .addSubcommandGroup(subcommandGroup =>
+            subcommandGroup
+                .setName("add")
+                .setDescription("Add base command")
+                .addSubcommand(subcommand =>
+                    subcommand
+                        .setName("note")
+                        .setDescription("Add a note to a case")
+                        .addStringOption(option =>
+                            option.setName("case-id")
+                                .setDescription("The case id of the punishment")
+                                .setMinLength(6)
+                                .setMaxLength(6)
+                                .setRequired(true))
+                        .addStringOption(option =>
+                            option.setName("note")
+                                .setDescription("The note to add to the case")
+                                .setMaxLength(255)
+                                .setRequired(true)))
+                .addSubcommand(subcommand =>
+                subcommand
+                    .setName("evidence")
+                    .setDescription("Add evidence to a case")
+                    .addStringOption(option =>
+                        option.setName("case-id")
+                            .setDescription("The case id of the punishment")
+                            .setMinLength(6)
+                            .setMaxLength(6)
+                            .setRequired(true))
+                    .addAttachmentOption( option=>
+                        option.setName("evidence")
+                            .setDescription("The evidence to add to the case")
+                            .setRequired(true))))
         .addSubcommand(subcommand =>
             subcommand
                 .setName("find")
                 .setDescription("Finds a case from a CaseID / Username / Discord User")
                 .addStringOption(option =>
-                    option.setName('case-id')
-                        .setDescription('The case id of the punishment')
+                    option.setName("case-id")
+                        .setDescription("The case id of the punishment")
                         .setMinLength(6)
                         .setMaxLength(6)
                         .setRequired(false))
                 .addStringOption(option =>
-                    option.setName('username')
-                        .setDescription('The minecraft username of the punished player')
+                    option.setName("username")
+                        .setDescription("The minecraft username of the punished player")
                         .setMaxLength(20)
                         .setRequired(false))
                  .addUserOption(option =>
-                    option.setName('user')
+                    option.setName("user")
                         .setDescription("The discord user of the punished user")
                         .setRequired(false)))
         .addSubcommandGroup(subcommandGroup =>
@@ -70,6 +105,10 @@ module.exports = {
             createCase(interaction);
         } else if (interaction.options.getSubcommand() === "find") {
             findCase(interaction);
+        } else if (interaction.options.getSubcommand() === "evidence") {
+            addEvidence(interaction);
+        } else if (interaction.options.getSubcommand() === "note") {
+            addNote(interaction);
         }
     },
 };
