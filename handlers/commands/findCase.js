@@ -183,6 +183,9 @@ module.exports = async (interaction) => {
         }
         // If No Options Inputted
     } else {
-
+        const noInputsEmbed = new EmbedBuilder()
+            .setColor(0xB22222)
+            .setDescription("You did not input any options. Please specify a Case ID, Username, or User.")
+        await interaction.editReply({ embeds: [noInputsEmbed], flags: MessageFlags.Ephemeral });
     }
 }
