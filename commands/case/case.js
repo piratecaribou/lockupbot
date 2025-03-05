@@ -3,11 +3,22 @@ const createCase = require("../../handlers/commands/createCase.js");
 const findCase = require("../../handlers/commands/findCase.js");
 const addEvidence = require("../../handlers/commands/addEvidence.js");
 const addNote = require("../../handlers/commands/addNote.js");
+const edit = require("../../handlers/commands/edit.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("case")
         .setDescription("Case base command")
+        .addSubcommand(subcommand =>
+                subcommand
+                    .setName("edit")
+                    .setDescription("Edit a case")
+                    .addStringOption(option =>
+                        option.setName("case-id")
+                            .setDescription("The case id of the punishment")
+                            .setMinLength(6)
+                            .setMaxLength(6)
+                            .setRequired(true)))
         .addSubcommandGroup(subcommandGroup =>
             subcommandGroup
                 .setName("add")
@@ -100,15 +111,20 @@ module.exports = {
                                 .setDescription("The evidence for the punishment")
                                 .setRequired(true)))),
     async execute(interaction) {
-        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
         if (interaction.options.getSubcommand() === "minecraft" || interaction.options.getSubcommand() === "discord") {
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             createCase(interaction);
         } else if (interaction.options.getSubcommand() === "find") {
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             findCase(interaction);
         } else if (interaction.options.getSubcommand() === "evidence") {
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             addEvidence(interaction);
         } else if (interaction.options.getSubcommand() === "note") {
+            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
             addNote(interaction);
+        } else if (interaction.options.getSubcommand() === "edit") {
+            edit(interaction);
         }
     },
 };

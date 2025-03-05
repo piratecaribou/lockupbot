@@ -67,5 +67,18 @@ module.exports = async (interaction) => {
         console.log(err);
         pool.end()
         await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
+        return;
     }
+
+    // Sender Data
+    const senderUserID = interaction.user.id;
+    const senderUsername = interaction.user.username;
+
+    // Create Log Entry
+    const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") added the a note: " + interaction.options.getString("note") + " to: " + interaction.options.getString("case-id") + "\n"
+    fs.appendFile("./logs/edits.log", logEntry, {encoding: "utf8"}, function (err) {
+        if (err) {
+            console.log(err);
+        }
+    });
 }
