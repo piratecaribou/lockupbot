@@ -11,5 +11,6 @@
 /node_modules/
 evidence/*
 !evidence/.gitkeep
+!evidence/deleted/.gitkeep
 logs/*
 !logs/.gitkeep
