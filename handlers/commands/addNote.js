@@ -4,6 +4,8 @@ const { databaseHost, databaseName, databaseUsername, databasePassword, edit } =
 const findCase = require("../functions/findCase");
 const authenticator = require("../functions/authenticator");
 const sanitize = require ("../../handlers/functions/sqlSanitize");
+const format = require("date-format");
+const fs = require("fs");
 
 module.exports = async (interaction) => {
 
@@ -54,7 +56,7 @@ module.exports = async (interaction) => {
                 "UPDATE cases SET note = '" + await sanitize.encode(interaction.options.getString("note")) + "' WHERE caseID = '" + await sanitize.encode(interaction.options.getString("case-id")) + "';");
             pool.end()
             //Send Updated Embed
-            findCase(interaction, interaction.options.getString("case-id"), "Added a note.")
+            findCase(interaction, interaction.options.getString("case-id"), "Added a note:")
             // Note Found
         } else {
             const noteFoundEmbed = new EmbedBuilder()

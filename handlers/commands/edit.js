@@ -92,7 +92,7 @@ module.exports = async (interaction) => {
                 .setStyle(TextInputStyle.Paragraph)
                 .setRequired(true)
                 .setMaxLength(255)
-                .setValue(reason);
+                .setValue(note === null ? "how did you see this?" : note);
             const noteInputRow = new ActionRowBuilder().addComponents(noteInput);
 
             // Send Variations Of Modals
