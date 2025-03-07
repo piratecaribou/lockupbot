@@ -1,8 +1,9 @@
 const { Events, MessageFlags } = require("discord.js");
 const caseIDButton = require("../handlers/buttons/caseIDButton.js");
 const suggestMCButton = require("../handlers/buttons/suggestMCButton.js");
-const reasonButton = require("../handlers/buttons/reasonButton");
-const sendCaseButton = require("../handlers/functions/findCase");
+const reasonButton = require("../handlers/buttons/reasonButton.js");
+const sendCaseButton = require("../handlers/functions/findCase.js");
+const editModal = require("../handlers/modals/editModal.js");
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -37,6 +38,11 @@ module.exports = {
             } else if (interaction.customId.startsWith("sendCaseButton-") === true) {
                 await interaction.deferReply({ flags: MessageFlags.Ephemeral });
                 sendCaseButton(interaction, interaction.customId.split("-")[1]);
+            }
+        } else if (interaction.isModalSubmit()) {
+            if (interaction.customId.startsWith("caseEditModal-") === true) {
+                await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                editModal(interaction);
             }
         }
     },
