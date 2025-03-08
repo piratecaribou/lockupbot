@@ -4,22 +4,11 @@ const findCase = require("../../handlers/commands/findCase.js");
 const addEvidence = require("../../handlers/commands/addEvidence.js");
 const addNote = require("../../handlers/commands/addNote.js");
 const edit = require("../../handlers/commands/edit.js");
-const caseDelete = require("../../handlers/commands/delete.js");
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("case")
         .setDescription("Case base command")
-        .addSubcommand(subcommand =>
-                subcommand
-                    .setName("delete")
-                    .setDescription("Delete a case")
-                    .addStringOption(option =>
-                        option.setName("case-id")
-                            .setDescription("The case id of the punishment")
-                            .setMinLength(6)
-                            .setMaxLength(6)
-                            .setRequired(true)))
         .addSubcommand(subcommand =>
                 subcommand
                     .setName("edit")
@@ -136,9 +125,6 @@ module.exports = {
             addNote(interaction);
         } else if (interaction.options.getSubcommand() === "edit") {
             edit(interaction);
-        } else if (interaction.options.getSubcommand() === "delete") {
-            await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-            caseDelete(interaction);
         }
     },
 };

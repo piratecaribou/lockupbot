@@ -1,14 +1,14 @@
 const mysql = require("mysql2/promise");
 const {MessageFlags, EmbedBuilder} = require("discord.js");
-const { databaseHost, databaseName, databaseUsername, databasePassword} = require("../../config.json");
+const { databaseHost, databaseName, databaseUsername, databasePassword } = require("../../config.json");
+const findCase = require("../functions/findCase");
+const path = require("path");
 const authenticator = require("../functions/authenticator");
 const sanitize = require ("../../handlers/functions/sqlSanitize");
 const format = require("date-format");
 const fs = require("fs");
-const path = require("path");
 
 module.exports = async (interaction) => {
-
     // Mysql pool
     const pool = mysql.createPool({
         host: databaseHost,
@@ -37,45 +37,55 @@ module.exports = async (interaction) => {
         pool.end()
         return}
 
-    // Get CaseID
+    // Get CaseID & Evidence
     const caseID = interaction.options.getString("case-id");
     const sanitizedCaseID = await sanitize.encode(caseID);
+    const evidenceToDelete = interaction.options.getInteger("evidence-number") - 1;
 
-    // Delete Case & Move Evidence Ect
     try {
         // Find Current Cases
         const [query] = await pool.query(
             "SELECT * FROM cases WHERE caseID = '" + sanitizedCaseID + "';");
-        const {platform, perpetrator, reason, evidence, note} = query[0];
-        // If Case Not Found
+        const {caseID, evidence} = query[0];
+        let evidenceArray = evidence.split(",");
+        // If No Case Found
         if (query.length === 0) {
             const caseIDNotFoundEmbed = new EmbedBuilder()
                 .setColor(0xB22222)
                 .setDescription("Sorry we could not find that case. Please check the Case ID and try again.")
             await interaction.editReply({embeds: [caseIDNotFoundEmbed], flags: MessageFlags.Ephemeral});
             pool.end()
-            // Case Found
+            // If Case Found But Only One Evidence
+        } else if (evidenceArray.length === 1){
+            const caseIDNotFoundEmbed = new EmbedBuilder()
+                .setColor(0xB22222)
+                .setDescription("A case must have at least one piece of evidence. Please add another piece of evidence before trying again.")
+            await interaction.editReply({embeds: [caseIDNotFoundEmbed], flags: MessageFlags.Ephemeral});
+            pool.end()
+             // Case Found But Number Larger Than Expected
+        } else if (evidenceArray.length < (evidenceToDelete + 1)) {
+            const toBigEmbed = new EmbedBuilder()
+                .setColor(0xB22222)
+                .setDescription("The evidence number: `" + (evidenceToDelete + 1) + "` you have selected is too large. Please select a number between `1` and `" + evidenceArray.length + "`")
+            await interaction.editReply({embeds: [toBigEmbed], flags: MessageFlags.Ephemeral});
+            pool.end()
+            // Case Found And 1+ Evidence
         } else {
-            // Delete DB Record
+            const evidencePath = path.join("./evidence", evidenceArray[evidenceToDelete]);
+            const evidencePathNew = path.join("./evidence/deleted", evidenceArray[evidenceToDelete]);
+            fs.copyFileSync(evidencePath, evidencePathNew);
+            fs.unlinkSync(evidencePath);
+
+            evidenceArray.splice(evidenceToDelete, 1);
+
             await pool.query(
-                "DELETE FROM cases WHERE caseID = '" + sanitizedCaseID + "';");
+                "UPDATE cases SET evidence = '" + evidenceArray.toString() + "' WHERE caseID = '" + sanitizedCaseID + "';"
+            )
 
-            // Move Evidence
-            let evidenceArray = evidence.split(",");
-            for (let i = 0; i < evidenceArray.length; i++) {
-                const evidencePath = path.join("./evidence", evidenceArray[i]);
-                const evidencePathNew = path.join("./evidence/deleted", evidenceArray[i]);
-                fs.copyFileSync(evidencePath, evidencePathNew);
-                fs.unlinkSync(evidencePath);
-            }
-
-            const successEmbed = new EmbedBuilder()
-                .setColor(0x66CDAA)
-                .setDescription("Deleted Punishment Case: **" + caseID + "**")
-            await interaction.editReply({ embeds: [successEmbed], flags: MessageFlags.Ephemeral });
+            findCase(interaction, caseID, "Deleted evidence from:")
 
             // Create Log Entry
-            const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") deleted a punishment case: " + caseID + ", " + platform + ", " + perpetrator + ", " + reason + ", " + (note === null ? "no note!" : note) + "\n"
+            const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") deleted a piece of evidence from: " + caseID + " file name: " + evidenceArray[evidenceToDelete] + "\n"
             fs.appendFileSync("./logs/deletes.log", logEntry, {encoding: "utf8"}, function (err) {
                 if (err) {
                     console.log(err);
@@ -85,15 +95,5 @@ module.exports = async (interaction) => {
         }
     } catch (err) {
 
-        // Error Embed
-        const errorEmbed = new EmbedBuilder()
-            .setColor(0xB22222)
-            .setDescription("An error occurred during this process, please alert <@658043211591450667>.")
-
-        console.log(err);
-        pool.end();
-        await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
     }
-
-
 }
