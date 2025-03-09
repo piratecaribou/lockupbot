@@ -1,11 +1,14 @@
 const mysql = require("mysql2/promise");
 const { databaseHost, databaseName, databaseUsername, databasePassword, request} = require("../../config.json");
 const authenticator = require("../functions/authenticator");
-const sanitize = require ("../../handlers/functions/sqlSanitize");
 const findCase = require("../functions/findCase");
 const { EmbedBuilder, MessageFlags, ActionRowBuilder, ButtonBuilder, ButtonStyle} = require("discord.js");
 
 module.exports = async (interaction) => {
+
+    const caseIDInput = interaction.options.getString("case-id");
+    const usernameInput = interaction.options.getString("username");
+    const userInput = interaction.options.getUser("user");
 
     // Error Embed
     const errorEmbed = new EmbedBuilder()
@@ -38,17 +41,18 @@ module.exports = async (interaction) => {
     }
 
     // If CaseID Is Filled Out
-    if (!interaction.options.getString("case-id") == "") {
+    if (!caseIDInput == "") {
         // Call Module
-        await findCase(interaction, interaction.options.getString("case-id"));
+        await findCase(interaction, caseIDInput);
+        pool.end()
 
         // If Username Found
-    } else if (!interaction.options.getString("username") == "") {
+    } else if (!usernameInput == "") {
 
         // Gets Count Of Records That Matches Input
         try {
-            const [countResults] = await pool.query(
-                "SELECT COUNT(perpetrator) FROM cases WHERE perpetrator = '" + await sanitize.encode(interaction.options.getString("username")) + "';")
+            const query = "SELECT COUNT(perpetrator) FROM cases WHERE perpetrator = ?"
+            const [countResults] = await pool.query(query, usernameInput);
             const count = countResults[0]['COUNT(perpetrator)'];
 
             // If No Cases Under Username Provided
@@ -57,6 +61,7 @@ module.exports = async (interaction) => {
                     .setColor(0xB22222)
                     .setDescription("Sorry; we could not find a case under that username. This could mean there are no cases logged under this username.")
                 await interaction.editReply({ embeds: [usernameNotFoundEmbed], flags: MessageFlags.Ephemeral });
+                pool.end()
 
                 // If A Case Is Found
             } else{
@@ -65,12 +70,13 @@ module.exports = async (interaction) => {
                 let caseID, reason, time, sendCaseButton
 
                 // Find Cases Matching Username
-                const [result] = await pool.query(
-                    "SELECT caseID, reason, time FROM cases WHERE perpetrator = '" + await sanitize.encode(interaction.options.getString("username")) + "' ORDER BY time DESC;")
+                const query2 = "SELECT caseID, reason, time FROM cases WHERE perpetrator = ? ORDER BY time DESC"
+                const [result] = await pool.query(query2, usernameInput);
 
                 // If Only One Case
                 if (count === 1) {
                     await findCase(interaction, result[0].caseID)
+                    pool.end()
                     return
                 }
 
@@ -106,6 +112,7 @@ module.exports = async (interaction) => {
                         {name: "**Reason**", value: reason, inline: true},
                         {name: "**Date**", value: time, inline: true})
                 await interaction.editReply({ embeds: [successEmbed], components: [sendCaseButton], flags: MessageFlags.Ephemeral });
+                pool.end()
             }
         } catch (err) {
             await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
@@ -113,11 +120,11 @@ module.exports = async (interaction) => {
             pool.end()
         }
         // If Discord User Found
-    } else if (!interaction.options.getUser("user") == "") {
+    } else if (!userInput == "") {
         // Gets Count Of Records That Matches Input
         try {
-            const [countResults] = await pool.query(
-                "SELECT COUNT(perpetrator) FROM cases WHERE perpetrator = '" + interaction.options.getUser("user").id + "';")
+            const query = "SELECT COUNT(perpetrator) FROM cases WHERE perpetrator = ?"
+            const [countResults] = await pool.query(query, userInput.id);
             const count = countResults[0]['COUNT(perpetrator)'];
 
             // If No Cases Under Username Provided
@@ -126,7 +133,7 @@ module.exports = async (interaction) => {
                     .setColor(0xB22222)
                     .setDescription("Sorry; we could not find a case under that user. This could mean there are no cases logged under this username.")
                 await interaction.editReply({ embeds: [usernameNotFoundEmbed], flags: MessageFlags.Ephemeral });
-
+                pool.end()
                 // If A Case Is Found
             } else{
 
@@ -134,12 +141,13 @@ module.exports = async (interaction) => {
                 let caseID, reason, time, sendCaseButton
 
                 // Find Cases Matching Username
-                const [result] = await pool.query(
-                    "SELECT caseID, reason, time FROM cases WHERE perpetrator = '" + interaction.options.getUser("user").id + "' ORDER BY time DESC;")
+                const query2 = "SELECT caseID, reason, time FROM cases WHERE perpetrator = ? ORDER BY time DESC"
+                const [result] = await pool.query(query2, userInput.id);
 
                 // If Only One Case
                 if (count === 1) {
                     await findCase(interaction, result[0].caseID)
+                    pool.end()
                     return
                 }
 
@@ -169,12 +177,13 @@ module.exports = async (interaction) => {
                 // Send Embed
                 const successEmbed = new EmbedBuilder()
                     .setColor(0x31AF9A)
-                    .setDescription("Discord Punishments For: " + interaction.options.getUser("user").toString())
+                    .setDescription("Discord Punishments For: " + userInput.toString())
                     .addFields(
                         {name: "**Case ID**", value: caseID, inline: true},
                         {name: "**Reason**", value: reason, inline: true},
                         {name: "**Date**", value: time, inline: true})
                 await interaction.editReply({ embeds: [successEmbed], components: [sendCaseButton], flags: MessageFlags.Ephemeral });
+                pool.end()
             }
         } catch (err) {
             await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
@@ -187,5 +196,6 @@ module.exports = async (interaction) => {
             .setColor(0xB22222)
             .setDescription("You did not input any options. Please specify a Case ID, Username, or User.")
         await interaction.editReply({ embeds: [noInputsEmbed], flags: MessageFlags.Ephemeral });
+        pool.end()
     }
 }
