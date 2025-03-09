@@ -1,5 +1,4 @@
 const {EmbedBuilder, MessageFlags} = require("discord.js");
-const sanitize = require("../functions/sqlSanitize");
 const mysql = require("mysql2/promise");
 const { databaseHost, databaseName, databaseUsername, databasePassword} = require("../../config.json");
 const authenticator = require("../functions/authenticator");
@@ -46,12 +45,12 @@ module.exports = async (interaction) => {
 
     try {
         // Mysql Query Old Data
-        const [query] = await pool.query(
-            "SELECT platform, perpetrator, reason, note FROM cases WHERE caseID = '" + caseID + "';");
-        platform = query[0].platform;
-        perpetrator = query[0].perpetrator;
-        reason = query[0].reason;
-        note = query[0].note;
+        const query = "SELECT platform, perpetrator, reason, note FROM cases WHERE caseID = ?";
+        const [results] = await pool.query(query, [caseID]);
+        platform = results[0].platform;
+        perpetrator = results[0].perpetrator;
+        reason = results[0].reason;
+        note = results[0].note;
     } catch (err) {
         console.log(err);
         pool.end();
@@ -62,10 +61,10 @@ module.exports = async (interaction) => {
     // Get Modal Data
     let platformInput = interaction.fields.getTextInputValue("platformInput").toLowerCase();
     let perpetratorInput = interaction.fields.getTextInputValue("perpetratorInput");
-    let reasonInput = await sanitize.encode(interaction.fields.getTextInputValue("reasonInput"));
+    let reasonInput = interaction.fields.getTextInputValue("reasonInput");
     let noteInput, notePresent = false;
     if (note !== null) {
-        noteInput = await sanitize.encode(interaction.fields.getTextInputValue("noteInput"));
+        noteInput = interaction.fields.getTextInputValue("noteInput");
         notePresent = true;
     }
 
@@ -80,9 +79,7 @@ module.exports = async (interaction) => {
             pool.end();
             return;
         }
-    } else if (platformInput === "minecraft") {
-        perpetratorInput = await sanitize.encode(perpetratorInput);
-    } else {
+    } else if (platformInput !== "minecraft") {
         const notValid = new EmbedBuilder()
             .setColor(0xB22222)
             .setDescription("Sorry, the platform you entered: `" + platformInput + "`, is not allowed. The only allowed platform types are `minecraft` & `discord`. Please try again using these types.")
@@ -94,9 +91,8 @@ module.exports = async (interaction) => {
     try {
         if (notePresent === false) {
             // Update Database
-            await pool.query(
-                "UPDATE cases SET platform = '" + platformInput + "', perpetrator = '" + perpetratorInput + "', reason = '" + reasonInput + "' WHERE caseID = '" + caseID + "';"
-            )
+            const query = "UPDATE cases SET platform = ?, perpetrator = ?, reason = ? WHERE caseID = ?";
+            await pool.query(query, [platformInput, perpetratorInput, reasonInput, caseID]);
 
             pool.end();
             findCase(interaction, caseID, "Edited A Case:")
@@ -110,9 +106,8 @@ module.exports = async (interaction) => {
             });
         } else {
             // Update Database
-            await pool.query(
-                "UPDATE cases SET platform = '" + platformInput + "', perpetrator = '" + perpetratorInput + "', reason = '" + reasonInput + "', note = '" + noteInput + "' WHERE caseID = '" + caseID + "';"
-            )
+            const query = "UPDATE cases SET platform = ?, perpetrator = ?, reason = ?, note = ? WHERE caseID = ?";
+            await pool.query(query, [platformInput, perpetratorInput, reasonInput, noteInput, caseID])
 
             pool.end();
             findCase(interaction, caseID, "Edited A Case:")
