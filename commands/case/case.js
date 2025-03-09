@@ -10,15 +10,15 @@ module.exports = {
         .setName("case")
         .setDescription("Case base command")
         .addSubcommand(subcommand =>
-                subcommand
-                    .setName("edit")
-                    .setDescription("Edit a case")
-                    .addStringOption(option =>
-                        option.setName("case-id")
-                            .setDescription("The case id of the punishment")
-                            .setMinLength(6)
-                            .setMaxLength(6)
-                            .setRequired(true)))
+            subcommand
+                .setName("edit")
+                .setDescription("Edit a case")
+                .addStringOption(option =>
+                    option.setName("case-id")
+                        .setDescription("The case id of the punishment")
+                        .setMinLength(6)
+                        .setMaxLength(6)
+                        .setRequired(true)))
         .addSubcommandGroup(subcommandGroup =>
             subcommandGroup
                 .setName("add")
@@ -39,19 +39,19 @@ module.exports = {
                                 .setMaxLength(255)
                                 .setRequired(true)))
                 .addSubcommand(subcommand =>
-                subcommand
-                    .setName("evidence")
-                    .setDescription("Add evidence to a case")
-                    .addStringOption(option =>
-                        option.setName("case-id")
-                            .setDescription("The case id of the punishment")
-                            .setMinLength(6)
-                            .setMaxLength(6)
-                            .setRequired(true))
-                    .addAttachmentOption( option=>
-                        option.setName("evidence")
-                            .setDescription("The evidence to add to the case")
-                            .setRequired(true))))
+                    subcommand
+                        .setName("evidence")
+                        .setDescription("Add evidence to a case")
+                        .addStringOption(option =>
+                            option.setName("case-id")
+                                .setDescription("The case id of the punishment")
+                                .setMinLength(6)
+                                .setMaxLength(6)
+                                .setRequired(true))
+                        .addAttachmentOption( option=>
+                            option.setName("evidence")
+                                .setDescription("The evidence to add to the case")
+                                .setRequired(true))))
         .addSubcommand(subcommand =>
             subcommand
                 .setName("find")
@@ -67,7 +67,7 @@ module.exports = {
                         .setDescription("The minecraft username of the punished player")
                         .setMaxLength(20)
                         .setRequired(false))
-                 .addUserOption(option =>
+                .addUserOption(option =>
                     option.setName("user")
                         .setDescription("The discord user of the punished user")
                         .setRequired(false)))
