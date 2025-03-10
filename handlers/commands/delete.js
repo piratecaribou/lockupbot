@@ -2,7 +2,6 @@ const mysql = require("mysql2/promise");
 const {MessageFlags, EmbedBuilder} = require("discord.js");
 const { databaseHost, databaseName, databaseUsername, databasePassword} = require("../../config.json");
 const authenticator = require("../functions/authenticator");
-const sanitize = require ("../../handlers/functions/sqlSanitize");
 const format = require("date-format");
 const fs = require("fs");
 const path = require("path");
@@ -38,17 +37,16 @@ module.exports = async (interaction) => {
         return}
 
     // Get CaseID
-    const caseID = interaction.options.getString("case-id");
-    const sanitizedCaseID = await sanitize.encode(caseID);
+    const caseIDInput = interaction.options.getString("case-id");
 
     // Delete Case & Move Evidence Ect
     try {
         // Find Current Cases
-        const [query] = await pool.query(
-            "SELECT * FROM cases WHERE caseID = '" + sanitizedCaseID + "';");
-        const {platform, perpetrator, reason, evidence, note} = query[0];
+        let query = "SELECT * FROM cases WHERE caseID = ?"
+        const [result] = await pool.query(query, [caseIDInput]);
+        const {platform, perpetrator, reason, evidence, note} = result[0];
         // If Case Not Found
-        if (query.length === 0) {
+        if (result.length === 0) {
             const caseIDNotFoundEmbed = new EmbedBuilder()
                 .setColor(0xB22222)
                 .setDescription("Sorry we could not find that case. Please check the Case ID and try again.")
@@ -57,8 +55,8 @@ module.exports = async (interaction) => {
             // Case Found
         } else {
             // Delete DB Record
-            await pool.query(
-                "DELETE FROM cases WHERE caseID = '" + sanitizedCaseID + "';");
+            query = "DELETE FROM cases WHERE caseID = ?"
+            await pool.query(query, [caseIDInput]);
 
             // Move Evidence
             let evidenceArray = evidence.split(",");
@@ -71,12 +69,12 @@ module.exports = async (interaction) => {
 
             const successEmbed = new EmbedBuilder()
                 .setColor(0x66CDAA)
-                .setDescription("Deleted Punishment Case: **" + caseID + "**")
+                .setDescription("Deleted Punishment Case: **" + caseIDInput + "**")
             await interaction.editReply({ embeds: [successEmbed], flags: MessageFlags.Ephemeral });
 
             // Create Log Entry
-            const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") deleted a punishment case: " + caseID + ", " + platform + ", " + perpetrator + ", " + reason + ", " + (note === null ? "no note!" : note) + "\n"
-            fs.appendFileSync("./logs/deletes.log", logEntry, {encoding: "utf8"}, function (err) {
+            const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") deleted a punishment case: " + caseIDInput + ", " + platform + ", " + perpetrator + ", " + reason + ", " + (note === null ? "no note!" : note) + "\n"
+            fs.appendFile("./logs/deletes.log", logEntry, {encoding: "utf8"}, function (err) {
                 if (err) {
                     console.log(err);
                 }

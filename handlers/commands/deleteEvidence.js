@@ -4,7 +4,6 @@ const { databaseHost, databaseName, databaseUsername, databasePassword } = requi
 const findCase = require("../functions/findCase");
 const path = require("path");
 const authenticator = require("../functions/authenticator");
-const sanitize = require ("../../handlers/functions/sqlSanitize");
 const format = require("date-format");
 const fs = require("fs");
 
@@ -38,18 +37,17 @@ module.exports = async (interaction) => {
         return}
 
     // Get CaseID & Evidence
-    const caseID = interaction.options.getString("case-id");
-    const sanitizedCaseID = await sanitize.encode(caseID);
+    const caseIDInput = interaction.options.getString("case-id");
     const evidenceToDelete = interaction.options.getInteger("evidence-number") - 1;
 
     try {
         // Find Current Cases
-        const [query] = await pool.query(
-            "SELECT * FROM cases WHERE caseID = '" + sanitizedCaseID + "';");
-        const {caseID, evidence} = query[0];
+        const query = "SELECT * FROM cases WHERE caseID = ?"
+        const [result] = await pool.query(query, [caseIDInput]);
+        const {evidence} = result[0];
         let evidenceArray = evidence.split(",");
         // If No Case Found
-        if (query.length === 0) {
+        if (result.length === 0) {
             const caseIDNotFoundEmbed = new EmbedBuilder()
                 .setColor(0xB22222)
                 .setDescription("Sorry we could not find that case. Please check the Case ID and try again.")
@@ -78,15 +76,14 @@ module.exports = async (interaction) => {
 
             evidenceArray.splice(evidenceToDelete, 1);
 
-            await pool.query(
-                "UPDATE cases SET evidence = '" + evidenceArray.toString() + "' WHERE caseID = '" + sanitizedCaseID + "';"
-            )
+            const query2 = "UPDATE cases SET evidence = ? WHERE caseID = ?";
+            await pool.query(query2, [evidenceArray.toString(), caseIDInput]);
 
-            findCase(interaction, caseID, "Deleted evidence from:")
+            findCase(interaction, caseIDInput, "Deleted evidence from:")
 
             // Create Log Entry
-            const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") deleted a piece of evidence from: " + caseID + " file name: " + evidenceArray[evidenceToDelete] + "\n"
-            fs.appendFileSync("./logs/deletes.log", logEntry, {encoding: "utf8"}, function (err) {
+            const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") deleted a piece of evidence from: " + caseIDInput + " file name: " + evidenceArray[evidenceToDelete] + "\n"
+            fs.appendFile("./logs/deletes.log", logEntry, {encoding: "utf8"}, function (err) {
                 if (err) {
                     console.log(err);
                 }

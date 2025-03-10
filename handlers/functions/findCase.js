@@ -3,7 +3,7 @@ const path = require("path");
 const {AttachmentBuilder, EmbedBuilder, MessageFlags} = require("discord.js");
 const mysql = require("mysql2/promise");
 
-module.exports = async (interaction, caseID, description) => {
+module.exports = async (interaction, caseID, description, buttonRow, evidenceLink) => {
 
     // Error Embed
     const errorEmbed = new EmbedBuilder()
@@ -63,8 +63,14 @@ module.exports = async (interaction, caseID, description) => {
 
             let evidenceArray = evidence.split(",");
             for (let i = 0; i < evidenceArray.length; i++) {
-                const evidencePath = path.join("./evidence", evidenceArray[i]);
-                const evidenceAttachment = new AttachmentBuilder(evidencePath).setName(evidenceArray[i]);
+                let evidenceAttachment;
+                if (evidenceLink === null) {
+                    const evidencePath = path.join("./evidence", evidenceArray[i]);
+                    evidenceAttachment = new AttachmentBuilder(evidencePath).setName(evidenceArray[i]);
+                } else {
+                    evidenceAttachment = evidenceLink
+                }
+
                 const embed = await createEmbed({
                     platform,
                     description,
@@ -80,20 +86,40 @@ module.exports = async (interaction, caseID, description) => {
                 if ((i + 1) === evidenceArray.length) {
                     // If First Loop
                     if (i === 0) {
-                        await interaction.editReply({
-                            embeds: [embed],
-                            content: "",
-                            files: [evidenceAttachment],
-                            flags: MessageFlags.Ephemeral,
-                        });
+                        if (buttonRow === null) {
+                            await interaction.editReply({
+                                embeds: [embed],
+                                content: "",
+                                files: [evidenceAttachment],
+                                flags: MessageFlags.Ephemeral,
+                            });
+                        } else {
+                            await interaction.editReply({
+                                embeds: [embed],
+                                content: "",
+                                files: [evidenceAttachment],
+                                flags: MessageFlags.Ephemeral,
+                                components: [buttonRow],
+                            });
+                        }
                         // If Not First Loop
                     } else {
-                        await interaction.followUp({
-                            content: `Evidence ${i + 1}:`,
-                            embeds: [embed],
-                            files: [evidenceAttachment],
-                            flags: MessageFlags.Ephemeral,
-                        });
+                        if (buttonRow === null) {
+                            await interaction.followUp({
+                                content: `Evidence ${i + 1}:`,
+                                embeds: [embed],
+                                files: [evidenceAttachment],
+                                flags: MessageFlags.Ephemeral,
+                            });
+                        } else {
+                            await interaction.followUp({
+                                content: `Evidence ${i + 1}:`,
+                                embeds: [embed],
+                                files: [evidenceAttachment],
+                                flags: MessageFlags.Ephemeral,
+                                components: [buttonRow],
+                            });
+                        }
                     }
                     // If Not Last Piece Of Evidence
                 } else {
