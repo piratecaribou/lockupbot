@@ -1,15 +1,9 @@
 const mysql = require("mysql2/promise");
-const sanitize = require("../functions/sqlSanitize");
 const authenticator = require("../functions/authenticator");
 const { databaseHost, databaseName, databaseUsername, databasePassword} = require("../../config.json");
 const {EmbedBuilder, MessageFlags, ModalBuilder, TextInputBuilder, ActionRowBuilder, TextInputStyle} = require("discord.js");
 
 module.exports = async (interaction) => {
-
-    // Error Embed
-    const errorEmbed = new EmbedBuilder()
-        .setColor(0xB22222)
-        .setDescription("An error occurred during this process, please alert <@658043211591450667>.");
 
     // Mysql pool
     const pool = mysql.createPool({
@@ -36,13 +30,16 @@ module.exports = async (interaction) => {
         return
     }
 
+    // Get Options
+    const caseIDInput = interaction.options.getString("case-id");
+
     try {
         // Mysql Query
-        const [query] = await pool.query(
-            "SELECT caseID, platform, perpetrator, reason, note FROM cases WHERE caseID = '" + await sanitize.encode(interaction.options.getString("case-id")) + "';");
+        const query = "SELECT caseID, platform, perpetrator, reason, note FROM cases WHERE caseID = ?"
+        const [result] = await pool.query(query, [caseIDInput]);
 
         // If Case ID Not Found
-        if (query.length === 0) {
+        if (result.length === 0) {
             const caseIDNotFoundEmbed = new EmbedBuilder()
                 .setColor(0xB22222)
                 .setDescription("Sorry we could not find that case. Please check the Case ID and try again.")
@@ -50,7 +47,7 @@ module.exports = async (interaction) => {
             pool.end()
         } else {
             // Retrieve Query Results
-            const {caseID, platform, perpetrator, reason, note} = query[0];
+            const {caseID, platform, perpetrator, reason, note} = result[0];
 
             // Create Modal
             const modal = new ModalBuilder()
@@ -107,6 +104,10 @@ module.exports = async (interaction) => {
             }
         }
     } catch (err) {
+        // Error Embed
+        const errorEmbed = new EmbedBuilder()
+            .setColor(0xB22222)
+            .setDescription("An error occurred during this process, please alert <@658043211591450667>.");
         console.log(err);
         pool.end();
         await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });

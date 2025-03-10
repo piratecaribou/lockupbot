@@ -2,12 +2,12 @@ const { MessageFlags, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder
 const path = require("path");
 const fetch = require("node-fetch");
 const authenticator = require("../functions/authenticator.js");
-const { databaseHost, databaseName, databaseUsername, databasePassword, request, edit } = require("../../config.json");
+const { databaseHost, databaseName, databaseUsername, databasePassword, request } = require("../../config.json");
 const mysql = require("mysql2/promise");
 const mime = require("mime-types");
 const fs = require("fs");
 const format = require("date-format");
-const sanitize = require ("../../handlers/functions/sqlSanitize");
+const findCase = require("../functions/findCase");
 
 module.exports = async (interaction) => {
 
@@ -93,9 +93,8 @@ module.exports = async (interaction) => {
 
     // Send To Mysql Database
     try {
-        await pool.query(
-            "INSERT INTO cases (caseID, platform, perpetrator, executor, reason, evidence, time) VALUES ('" + caseID + "', '" + platform + "', '" + await sanitize.encode(user) + "', '" + senderUserID + "', '" + await sanitize.encode(reason) + "', '" + caseID + "-1." + evidenceContentType + "', '" + timestamp + "');"
-        );
+        const query = "INSERT INTO cases (caseID, platform, perpetrator, executor, reason, evidence, time) VALUES ('" + caseID + "', '" + platform + "', ?, '" + senderUserID + "', ?, '" + caseID + "-1." + evidenceContentType + "', '" + timestamp + "');"
+        await pool.query(query, [user, reason]);
         pool.end()
     } catch (err) {
         await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
@@ -104,23 +103,19 @@ module.exports = async (interaction) => {
         return
     }
 
-    // Build Success Embed
+    // Create Buttons & Add To Button Row
+    const caseIDButton = new ButtonBuilder()
+        .setCustomId("caseID-" + caseID)
+        .setLabel("Case ID")
+        .setEmoji("🔑")
+        .setStyle(ButtonStyle.Secondary);
+
+    // Get Evidence
+    const evidenceAttachment = new AttachmentBuilder(evidenceURL)
+        .setName(caseID + "-1." + evidenceContentType);
+
     if (interaction.options.getSubcommand() === "minecraft") {
-        const successEmbed = new EmbedBuilder()
-            .setColor(0x6A5ACD)
-            .setDescription("Successfully created a minecraft punishment case.")
-            .addFields(
-                {name: "**Punished Player**", value: "`" + user + "`", inline: true},
-                {name: "**Reason**", value: "`" + reason + "`", inline: true},
-                {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                {name: "**Case Information**", value: "`🏹` <@" + senderUserID + ">\n" + "`🕰️` <t:" + timestamp + ":R>", inline: true},
-                {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true})
         // Create Buttons & Add To Button Row
-        const caseIDButton = new ButtonBuilder()
-            .setCustomId("caseID-" + caseID)
-            .setLabel("Case ID")
-            .setEmoji("🔑")
-            .setStyle(ButtonStyle.Secondary);
         const suggestButton = new ButtonBuilder()
             .setCustomId("suggestMC-" + caseID)
             .setLabel("Suggest Command")
@@ -129,17 +124,7 @@ module.exports = async (interaction) => {
         const buttonRow = new ActionRowBuilder()
             .addComponents(caseIDButton, suggestButton);
 
-        // Get Evidence
-        const evidenceAttachment = new AttachmentBuilder(evidenceURL)
-            .setName(caseID + "-1." + evidenceContentType);
-
-        // Send Embed + Messages
-        await interaction.editReply({
-            embeds: [successEmbed],
-            components: [buttonRow],
-            files: [evidenceAttachment],
-            flags: MessageFlags.Ephemeral
-        });
+        findCase(interaction, caseID, "Successfully created a minecraft punishment case:", buttonRow, evidenceAttachment)
 
         // Create Log Entry
         const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") created a minecraft punishment case: " + caseID + "\n"
@@ -149,40 +134,16 @@ module.exports = async (interaction) => {
             }
         });
     } else {
-        const successEmbed = new EmbedBuilder()
-            .setColor(0x6A5ACD)
-            .setDescription("Successfully created a discord punishment case.")
-            .addFields(
-                {name: "**Punished User**", value: "<@" + user + ">", inline: true},
-                {name: "**Reason**", value: "`" + reason + "`", inline: true},
-                {name: "**Case ID**", value: "`" + caseID + "`", inline: true},
-                {name: "**Case Information**", value: "`🏹` <@" + senderUserID + ">\n" + "`🕰️` <t:" + timestamp + ":R>", inline: true},
-                {name: "", value: "If you made a mistake, or would like to add something, you can edit the case using " + edit + ".", inline: true})
         // Create Buttons & Add To Button Row
-        const caseIDButton = new ButtonBuilder()
-            .setCustomId("caseID-" + caseID)
-            .setLabel("Case ID")
-            .setEmoji("🔑")
-            .setStyle(ButtonStyle.Secondary);
         const suggestButton = new ButtonBuilder()
-            .setCustomId("reasonDC௵" + reason.replace("௵", "") + " - " + caseID)
+            .setCustomId("reasonDC-" + reason + " - " + caseID)
             .setLabel("Reason")
             .setEmoji("📜")
             .setStyle(ButtonStyle.Secondary);
         const buttonRow = new ActionRowBuilder()
             .addComponents(caseIDButton, suggestButton);
 
-        // Get Evidence
-        const evidenceAttachment = new AttachmentBuilder(evidenceURL)
-            .setName(caseID + "-1." + evidenceContentType);
-
-        // Send Embed + Messages
-        await interaction.editReply({
-            embeds: [successEmbed],
-            components: [buttonRow],
-            files: [evidenceAttachment],
-            flags: MessageFlags.Ephemeral
-        });
+        findCase(interaction, caseID, "Successfully created a discord punishment case:", buttonRow, evidenceAttachment)
 
         // Create Log Entry
         const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") created a discord punishment case: " + caseID + "\n"

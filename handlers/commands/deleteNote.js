@@ -3,11 +3,11 @@ const {MessageFlags, EmbedBuilder} = require("discord.js");
 const { databaseHost, databaseName, databaseUsername, databasePassword } = require("../../config.json");
 const findCase = require("../functions/findCase");
 const authenticator = require("../functions/authenticator");
-const sanitize = require ("../../handlers/functions/sqlSanitize");
 const format = require("date-format");
 const fs = require("fs");
 
 module.exports = async (interaction) => {
+
     // Mysql pool
     const pool = mysql.createPool({
         host: databaseHost,
@@ -34,19 +34,19 @@ module.exports = async (interaction) => {
             .setDescription("You do not have access to the evidence lockup system. If you believe this is a mistake, or would like to request access please use: " + request)
         await interaction.editReply({ embeds: [unauthorizedEmbed], flags: MessageFlags.Ephemeral });
         pool.end()
-        return}
+        return
+    }
 
-    // Get CaseID
+    // Get Options
     const caseID = interaction.options.getString("case-id");
-    const sanitizedCaseID = await sanitize.encode(caseID);
 
     try {
         // Find Current Cases
-        const [query] = await pool.query(
-            "SELECT * FROM cases WHERE caseID = '" + sanitizedCaseID + "';");
+        const query = "SELECT * FROM cases WHERE caseID = ?"
+        const [result] = await pool.query(query, [caseID]);
         const {note} = query[0];
         // If No Case Found
-        if (query.length === 0) {
+        if (result.length === 0) {
             const caseIDNotFoundEmbed = new EmbedBuilder()
                 .setColor(0xB22222)
                 .setDescription("Sorry we could not find that case. Please check the Case ID and try again.")
@@ -70,7 +70,7 @@ module.exports = async (interaction) => {
 
             // Create Log Entry
             const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") deleted a note from: " + caseID + " note: " + note + "\n"
-            fs.appendFileSync("./logs/deletes.log", logEntry, {encoding: "utf8"}, function (err) {
+            fs.appendFile("./logs/deletes.log", logEntry, {encoding: "utf8"}, function (err) {
                 if (err) {
                     console.log(err);
                 }
