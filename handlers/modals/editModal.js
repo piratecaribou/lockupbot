@@ -95,7 +95,7 @@ module.exports = async (interaction) => {
             await pool.query(query, [platformInput, perpetratorInput, reasonInput, caseID]);
 
             pool.end();
-            findCase(interaction, caseID, "Edited A Case:")
+            findCase(interaction, caseID, "Edited A Case:", null, null)
 
             // Create Log Entry
             const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") edited a punishment case: " + caseID + ", old: " + platform + ", " + perpetrator + ", " + reason + "\n" + "new: " + platformInput + ", " + perpetratorInput + ", " + reasonInput + "\n"
@@ -110,7 +110,7 @@ module.exports = async (interaction) => {
             await pool.query(query, [platformInput, perpetratorInput, reasonInput, noteInput, caseID])
 
             pool.end();
-            findCase(interaction, caseID, "Edited A Case:")
+            findCase(interaction, caseID, "Edited A Case:", null, null)
 
             // Create Log Entry
             const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") edited a punishment case: " + caseID + ", old: " + platform + ", " + perpetrator + ", " + reason + ", " + note + "\n" + "new: " + platformInput + ", " + perpetratorInput + ", " + reasonInput + ", " + noteInput + "\n"

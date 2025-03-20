@@ -15,7 +15,7 @@ module.exports = async (interaction) => {
 
     // Vars
     const caseIDInput = interaction.options.getString("case-id");
-    const note = interaction.options.getString("case-id");
+    const note = interaction.options.getString("note");
     const senderUserID = interaction.user.id;
     const senderUsername = interaction.user.username;
 
@@ -61,7 +61,7 @@ module.exports = async (interaction) => {
             await pool.query(query, [note, caseIDInput])
             pool.end()
             //Send Updated Embed
-            findCase(interaction, caseIDInput, "Added a note:")
+            findCase(interaction, caseIDInput, "Added a note:", null, null)
             // Note Found
         } else {
             const noteFoundEmbed = new EmbedBuilder()

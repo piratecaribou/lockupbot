@@ -79,7 +79,7 @@ module.exports = async (interaction) => {
             const query2 = "UPDATE cases SET evidence = ? WHERE caseID = ?";
             await pool.query(query2, [evidenceArray.toString(), caseIDInput]);
 
-            findCase(interaction, caseIDInput, "Deleted evidence from:")
+            findCase(interaction, caseIDInput, "Deleted evidence from:", null, null)
 
             // Create Log Entry
             const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") deleted a piece of evidence from: " + caseIDInput + " file name: " + evidenceArray[evidenceToDelete] + "\n"
