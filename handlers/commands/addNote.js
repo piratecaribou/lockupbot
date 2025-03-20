@@ -3,7 +3,6 @@ const {MessageFlags, EmbedBuilder} = require("discord.js");
 const { databaseHost, databaseName, databaseUsername, databasePassword, edit } = require("../../config.json");
 const findCase = require("../functions/findCase");
 const authenticator = require("../functions/authenticator");
-const sanitize = require ("../../handlers/functions/sqlSanitize");
 const format = require("date-format");
 const fs = require("fs");
 
@@ -13,6 +12,12 @@ module.exports = async (interaction) => {
     const errorEmbed = new EmbedBuilder()
         .setColor(0xB22222)
         .setDescription("An error occurred during this process, please alert <@658043211591450667>.")
+
+    // Vars
+    const caseIDInput = interaction.options.getString("case-id");
+    const note = interaction.options.getString("case-id");
+    const senderUserID = interaction.user.id;
+    const senderUsername = interaction.user.username;
 
     // Mysql pool
     const pool = mysql.createPool({
@@ -29,7 +34,7 @@ module.exports = async (interaction) => {
     });
 
     // Authenticator
-    const roleResultAuthenticator = await authenticator.role(interaction.user.id, pool);
+    const roleResultAuthenticator = await authenticator.role(senderUserID, pool);
     if (roleResultAuthenticator === "null") {
         const unauthorizedEmbed = new EmbedBuilder()
             .setColor(0xB22222)
@@ -40,23 +45,23 @@ module.exports = async (interaction) => {
 
     // Find Existing Notes
     try {
-        const [query] = await pool.query(
-            "SELECT note, caseID FROM cases WHERE caseID = '" + await sanitize.encode(interaction.options.getString("case-id")) + "';");
+        let query = "SELECT note, caseID FROM cases WHERE caseID = ?"
+        const [result] = await pool.query(query, [caseIDInput]);
         // If Case ID Not Found
-        if (query.length === 0) {
+        if (result.length === 0) {
             const caseIDNotFoundEmbed = new EmbedBuilder()
                 .setColor(0xB22222)
                 .setDescription("Sorry we could not find that case. Please check the Case ID and try again.")
             await interaction.editReply({embeds: [caseIDNotFoundEmbed], flags: MessageFlags.Ephemeral});
             pool.end()
             // If Case ID Found And No Note
-        } else if (query[0].note === null) {
+        } else if (result[0].note === null) {
             // Update MYSQL
-            await pool.query(
-                "UPDATE cases SET note = '" + await sanitize.encode(interaction.options.getString("note")) + "' WHERE caseID = '" + await sanitize.encode(interaction.options.getString("case-id")) + "';");
+            query = "UPDATE cases SET note = ? WHERE caseID = ?"
+            await pool.query(query, [note, caseIDInput])
             pool.end()
             //Send Updated Embed
-            findCase(interaction, interaction.options.getString("case-id"), "Added a note:")
+            findCase(interaction, caseIDInput, "Added a note:")
             // Note Found
         } else {
             const noteFoundEmbed = new EmbedBuilder()
@@ -71,10 +76,6 @@ module.exports = async (interaction) => {
         await interaction.editReply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
         return;
     }
-
-    // Sender Data
-    const senderUserID = interaction.user.id;
-    const senderUsername = interaction.user.username;
 
     // Create Log Entry
     const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") added the a note: " + interaction.options.getString("note") + " to: " + interaction.options.getString("case-id") + "\n"
