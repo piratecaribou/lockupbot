@@ -42,7 +42,7 @@ module.exports = async (interaction) => {
 
     try {
         // Find Current Cases
-        const query = "SELECT * FROM cases WHERE caseID = ?"
+        let query = "SELECT * FROM cases WHERE caseID = ?"
         const [result] = await pool.query(query, [caseID]);
         const {note} = query[0];
         // If No Case Found
@@ -62,11 +62,10 @@ module.exports = async (interaction) => {
             // Case Found And A Note
         } else {
             // Delete Note
-            await pool.query(
-                "UPDATE cases SET note = NULL WHERE caseID = '" + sanitizedCaseID + "';"
-            )
+            query = "UPDATE cases SET note = NULL WHERE caseID = ?"
+            await pool.query(query, [caseID])
 
-            findCase(interaction, caseID, "Deleted a note from:")
+            findCase(interaction, caseID, "Deleted a note from:", null, null)
 
             // Create Log Entry
             const logEntry = format("dd/MM/yyyy hh:mm:ss", new Date()) + " » " + senderUsername + " (" + senderUserID + ") deleted a note from: " + caseID + " note: " + note + "\n"

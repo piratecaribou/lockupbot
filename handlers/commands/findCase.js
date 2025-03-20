@@ -43,7 +43,7 @@ module.exports = async (interaction) => {
     // If CaseID Is Filled Out
     if (!caseIDInput == "") {
         // Call Module
-        await findCase(interaction, caseIDInput);
+        await findCase(interaction, caseIDInput, null, null, null);
         pool.end()
 
         // If Username Found
@@ -75,7 +75,7 @@ module.exports = async (interaction) => {
 
                 // If Only One Case
                 if (count === 1) {
-                    await findCase(interaction, result[0].caseID)
+                    await findCase(interaction, result[0].caseID, null, null, null)
                     pool.end()
                     return
                 }
@@ -146,7 +146,7 @@ module.exports = async (interaction) => {
 
                 // If Only One Case
                 if (count === 1) {
-                    await findCase(interaction, result[0].caseID)
+                    await findCase(interaction, result[0].caseID, null, null, null)
                     pool.end()
                     return
                 }

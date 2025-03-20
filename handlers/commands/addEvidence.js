@@ -69,7 +69,7 @@ module.exports = async (interaction) => {
             const evidenceString = result[0].evidence + "," + caseIDInput + "-" + lastEvidenceNumber + "." + mime.extension(interaction.options.getAttachment("evidence").contentType)
             query = "UPDATE cases SET evidence = ? WHERE caseID = ?";
             await pool.query(query, [evidenceString, caseIDInput]);
-            findCase(interaction, interaction.options.getString("case-id"), "Added evidence to case:")
+            findCase(interaction, caseIDInput, "Added evidence to case:", null, null)
             pool.end()
 
             // Create Log Entry

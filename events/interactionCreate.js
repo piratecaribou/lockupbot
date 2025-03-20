@@ -33,11 +33,11 @@ module.exports = {
             } else if (interaction.customId.startsWith("suggestMC-") === true) {
                 await interaction.deferReply({ flags: MessageFlags.Ephemeral });
                 suggestMCButton(interaction);
-            } else if (interaction.customId.startsWith("reasonDC௵") === true) {
+            } else if (interaction.customId.startsWith("reasonDC-") === true) {
                 reasonButton(interaction);
             } else if (interaction.customId.startsWith("sendCaseButton-") === true) {
                 await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-                sendCaseButton(interaction, interaction.customId.split("-")[1]);
+                sendCaseButton(interaction, interaction.customId.split("-")[1], null, null, null);
             }
         } else if (interaction.isModalSubmit()) {
             if (interaction.customId.startsWith("caseEditModal-") === true) {
