@@ -34,9 +34,8 @@ module.exports = async (interaction) => {
         });
 
         try {
-            const [results] = await connection.query(
-                "SELECT perpetrator, reason FROM cases WHERE caseID = '" + caseID + "'"
-            );
+            const query = "SELECT perpetrator, reason FROM cases WHERE caseID = ?";
+            const [results] = await connection.query(query, [caseID]);
             connection.end();
 
             // Get Data From Database
