@@ -11,6 +11,8 @@ module.exports = {
                 return "user";
             } else if (results[0].role === "admin") {
                 return "admin";
+            } else if (results[0].role === "requested") {
+                return "requested";
             } else {
                 return "null"; // Something vry wrong had to happen to get to this point
             }
