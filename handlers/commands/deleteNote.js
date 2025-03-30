@@ -1,6 +1,6 @@
 const mysql = require("mysql2/promise");
 const {MessageFlags, EmbedBuilder} = require("discord.js");
-const { databaseHost, databaseName, databaseUsername, databasePassword } = require("../../config.json");
+const { databaseHost, databaseName, databaseUsername, databasePassword, request } = require("../../config.json");
 const findCase = require("../functions/findCase");
 const authenticator = require("../functions/authenticator");
 const format = require("date-format");
@@ -28,7 +28,7 @@ module.exports = async (interaction) => {
 
     // Authenticator
     const roleResultAuthenticator = await authenticator.role(senderUserID, pool);
-    if (roleResultAuthenticator !== "user" || roleResultAuthenticator !== "admin") {
+    if (roleResultAuthenticator !== "user" && roleResultAuthenticator !== "admin") {
         const unauthorizedEmbed = new EmbedBuilder()
             .setColor(0xB22222)
             .setDescription("You do not have access to the evidence lockup system. If you believe this is a mistake, or would like to request access please use: " + request)

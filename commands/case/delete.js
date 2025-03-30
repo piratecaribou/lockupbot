@@ -7,6 +7,8 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("delete")
         .setDescription("Delete base command")
+        .setContexts ([0, 1, 2])
+        .setIntegrationTypes([0, 1])
         .addSubcommand(subcommand =>
             subcommand
                 .setName("case")

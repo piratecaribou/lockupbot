@@ -31,7 +31,7 @@ module.exports = async (interaction) => {
 
     // Authenticator
     const roleResultAuthenticator = await authenticator.role(interaction.user.id, pool);
-    if (roleResultAuthenticator !== "user" || roleResultAuthenticator !== "admin") {
+    if (roleResultAuthenticator !== "user" && roleResultAuthenticator !== "admin") {
         const unauthorizedEmbed = new EmbedBuilder()
             .setColor(0xB22222)
             .setDescription("You do not have access to the evidence lockup system. If you believe this is a mistake, or would like to request access please use: " + request)

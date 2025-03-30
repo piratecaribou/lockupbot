@@ -2,6 +2,8 @@ const { Events, MessageFlags } = require("discord.js");
 const caseIDButton = require("../handlers/buttons/caseIDButton.js");
 const suggestMCButton = require("../handlers/buttons/suggestMCButton.js");
 const reasonButton = require("../handlers/buttons/reasonButton.js");
+const roleUser = require("../handlers/buttons/roleUser.js");
+const roleDeny = require("../handlers/buttons/roleDeny.js");
 const sendCaseButton = require("../handlers/functions/findCase.js");
 const editModal = require("../handlers/modals/editModal.js");
 
@@ -38,6 +40,12 @@ module.exports = {
             } else if (interaction.customId.startsWith("sendCaseButton-") === true) {
                 await interaction.deferReply({ flags: MessageFlags.Ephemeral });
                 sendCaseButton(interaction, interaction.customId.split("-")[1], null, null, null);
+            } else if (interaction.customId.startsWith("roleUser-") === true) {
+                await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                roleUser(interaction);
+            } else if (interaction.customId.startsWith("roleDeny-") === true) {
+                await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+                roleDeny(interaction);
             }
         } else if (interaction.isModalSubmit()) {
             if (interaction.customId.startsWith("caseEditModal-") === true) {
