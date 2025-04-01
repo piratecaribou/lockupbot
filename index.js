@@ -38,5 +38,8 @@ for (const file of eventFiles) {
 
 client.login(token);
 
-//Registers Slash Commands
+// Registers Slash Commands
 require("./deploy-commands");
+
+// Calls mineflayer
+require("./minecraftChatSpy/index.js");
