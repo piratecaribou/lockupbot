@@ -14,7 +14,7 @@ function createBot() {
             let username = rawMessage.split(' ')[1]
             let itemNameRaw = rawMessage.split('[')[2]
             let itemName = itemNameRaw.split(']')[0]
-            console.log(`Username: ${username} Item name: ${itemName}`)
+            console.log(`Username: ${username} Item: ${itemName}`)
         }
         // If a server message or a discord message
         if (!rawMessage.includes('›') || rawMessage.startsWith('DC')) return
