@@ -14,3 +14,4 @@ evidence/*
 !evidence/deleted/.gitkeep
 logs/*
 !logs/.gitkeep
+/chat.log
