@@ -1,6 +1,8 @@
 const mineflayer = require('mineflayer');
 const mysql = require('mysql2/promise');
-const databaseDispatcher = require('./handlers/functions/databaseDispatcher.js')
+const messageDispatcher = require('./handlers/functions/messageDispatcher.js')
+const flagsDispatcher = require('./handlers/functions/flagsDispatcher.js')
+const evidenceCreator = require('./handlers/functions/evidenceCreator.js')
 const checks = require('./handlers/functions/checks.js')
 const { databaseHost, databaseName, databaseUsername, databasePassword} = require("../config.json");
 
@@ -8,15 +10,31 @@ function createBot(){
     // Join a server
     let bot = mineflayer.createBot({
         host: 'lifestealsmp.com',
+        //port: '9000',
         username: 'protoncaribou',
         version: "1.20",
         auth: 'microsoft'
     });
 
     /*bot.on('chat', async (username, message) => {
+
+        // Send to database
+        const messageID = await messageDispatcher(pool, username, message)
+
         const checkResults = await checks(message)
 
         if (checkResults[0] === false) return
+
+        if (checkResults[1] === "openai") {
+            const flagID = await flagsDispatcher(pool, username, message, "openai", checkResults[2], checkResults[3])
+            //console.log(flagID)
+
+            await evidenceCreator(pool, username, message, messageID, flagID)
+
+            await console.log(`Username: ${username} Username: ${message}`)
+            await console.log(checkResults[2] + ", " + checkResults[3])
+            return
+        }
 
         await console.log(`Username: ${username} Message: ${message}`)
         await console.log(checkResults[1])
@@ -28,6 +46,8 @@ function createBot(){
         let checkResults
         let username
         let message
+        let flagID
+        // If a kill message
         if (rawMessage.startsWith('[')) {
             let killMSG
             try {
@@ -38,23 +58,33 @@ function createBot(){
                 return
             }
 
-            messageID = await databaseDispatcher(pool, username, killMSG)
+            messageID = await messageDispatcher(pool, username, killMSG)
+
             // Check message
             checkResults = await checks(message)
 
+            // If not flagged
             if (checkResults[0] === false) return
 
+            // Flagged by openai
             if (checkResults[1] === "openai") {
+                flagID = await flagsDispatcher(pool, username, message, "openai", checkResults[2], checkResults[3])
+                await evidenceCreator(pool, username, message, messageID, flagID)
                 await console.log(`Username: ${username} Item name: ${message}`)
                 await console.log(checkResults[2] + ", " + checkResults[3])
                 return
             }
 
+            // Not flagged by openai
+            flagID = await flagsDispatcher(pool, username, message, null, checkResults[1], null)
+            await evidenceCreator(pool, username, message, messageID, flagID)
             await console.log(`Username: ${username} Item name: ${message}`)
             await console.log(checkResults[1])
+
+        // If a chat message
         } else {
             // If a server message or a discord message
-            if (!rawMessage.includes('›') || rawMessage.startsWith('DC') || rawMessage.startsWith('│')) return
+            if ((!rawMessage.includes('›')) || rawMessage.startsWith('DC') || rawMessage.startsWith('│')) return
 
             // Parse the message
             message = rawMessage.split('› ')[1]
@@ -65,18 +95,26 @@ function createBot(){
             username = spaces[spaces.length - 1]
 
             // Send to database
-            messageID = await databaseDispatcher(pool, username, message)
+            messageID = await messageDispatcher(pool, username, message)
+
             // Check message
             checkResults = await checks(message)
 
+            // If message not flagged
             if (checkResults[0] === false) return
 
+            // If message flagged by openai
             if (checkResults[1] === "openai") {
+                flagID = await flagsDispatcher(pool, username, message, "openai", checkResults[2], checkResults[3])
+                await evidenceCreator(pool, username, message, messageID, flagID)
                 await console.log(`Username: ${username} Username: ${message}`)
                 await console.log(checkResults[2] + ", " + checkResults[3])
                 return
             }
+            // If message not flagged by openAI
 
+            flagID = await flagsDispatcher(pool, username, message, null, checkResults[1], null)
+            await evidenceCreator(pool, username, message, messageID, flagID)
             await console.log(`Username: ${username} Message: ${message}`)
             await console.log(checkResults[1])
         }
@@ -96,11 +134,13 @@ function createBot(){
     })
 
     // Upon logging in
-    bot.on('login', () => console.log(`Minecraft chat spy logged in as ${bot.username}`))
+    bot.on('login', () => {
+        console.log(`Minecraft chat spy logged in as ${bot.username}`)
+    })
 
     // Upon joining new server
-    bot.on('spawn', ()=> {
-        bot.waitForChunksToLoad()
+    bot.on('spawn', async ()=> {
+        await bot.waitForChunksToLoad()
         bot.chat("/lifesteal")
     })
 }

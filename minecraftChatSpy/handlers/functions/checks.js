@@ -103,9 +103,19 @@ module.exports = async (message) => {
             const highestCategoryScore = highestCategoryRaw[1];
 
             // Return values
-            if (highestCategory === "sexual" || highestCategory === "sexual/minors") return [true, "openai", "sexual", highestCategoryScore]
-            if (highestCategory === "hate" || highestCategory === "hate/threatening") return [true, "openai", "hate", highestCategoryScore]
-            if (highestCategory === "harassment" || highestCategory === "harassment/threatening") return [true, "openai", "harassment", highestCategoryScore]
+            if (highestCategory === "sexual") return [true, "openai", "sexual-a", highestCategoryScore]
+            if (highestCategory === "sexual/minors") return [true, "openai", "sexual-b", highestCategoryScore]
+            if (highestCategory === "hate") return [true, "openai", "hate-a", highestCategoryScore]
+            if (highestCategory === "hate/threatening") return [true, "openai", "hate-b", highestCategoryScore]
+            if (highestCategory === "harassment") {
+                if (highestCategoryScore < 0.8) {
+                    return [false, null]
+                } else {
+                    console.log(moderation.results[0])
+                    return [true, "openai", "harassment-a", highestCategoryScore]
+                }
+            }
+            if (highestCategory === "harassment/threatening") return [true, "openai", "harassment-b", highestCategoryScore]
             if (highestCategory === "self-harm/instructions") return [true, "openai", "selfHarm", highestCategoryScore]
             return [true, "openai", highestCategory, highestCategoryScore]
         }
